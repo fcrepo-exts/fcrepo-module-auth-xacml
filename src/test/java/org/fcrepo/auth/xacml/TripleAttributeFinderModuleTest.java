@@ -15,20 +15,6 @@
  */
 package org.fcrepo.auth.xacml;
 
-import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.services.NodeService;
-import org.jboss.security.xacml.sunxacml.EvaluationCtx;
-import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
-import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.w3c.dom.Node;
-
-import java.net.URI;
-import java.util.Set;
-
 import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.RESOURCE_TARGET;
 import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.SUBJECT_TARGET;
 import static org.junit.Assert.assertEquals;
@@ -36,12 +22,27 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.MockitoAnnotations.Mock;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import java.net.URI;
+import java.util.Set;
+
+import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.services.NodeService;
+
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
+import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.w3c.dom.Node;
 
 /**
  * @author Andrew Woods
- *         Date: 5/9/14
+ * @author Scott Prater
  */
 public class TripleAttributeFinderModuleTest {
 
@@ -107,15 +108,6 @@ public class TripleAttributeFinderModuleTest {
         assertIsEmptyResult(result);
     }
 
-    private void assertIsEmptyResult(EvaluationResult result) {
-        final AttributeValue attributeValue = result.getAttributeValue();
-        assertNotNull("Evaluation.attributeValue shoud not be null!", attributeValue);
-        assertTrue("Evaluation.attributeValue should be a bag!", attributeValue.isBag());
-
-        final Object value = attributeValue.getValue();
-        assertNull("EvaluationResult value should be null!", value);
-    }
-
     @Test
     public void testFindAttributeWrongDesignator() throws Exception {
         assertIsEmptyResult(doFindAttribute(SUBJECT_TARGET));
@@ -124,7 +116,7 @@ public class TripleAttributeFinderModuleTest {
     @Test
     @Ignore("Until implemented")
     public void testFindAttribute() {
-        EvaluationResult result = doFindAttribute();
+        final EvaluationResult result = doFindAttribute();
 
         final AttributeValue attributeValue = result.getAttributeValue();
         assertNotNull("Evaluation.attributeValue shoud not be null!", attributeValue);
@@ -132,6 +124,16 @@ public class TripleAttributeFinderModuleTest {
 
         final Object value = attributeValue.getValue();
         assertNotNull("EvaluationResult value should not be null!", value);
+        // assertEquals((String)value, "SamIAm");
+    }
+
+    private void assertIsEmptyResult(final EvaluationResult result) {
+        final AttributeValue attributeValue = result.getAttributeValue();
+        assertNotNull("Evaluation.attributeValue shoud not be null!", attributeValue);
+        assertTrue("Evaluation.attributeValue should be a bag!", attributeValue.isBag());
+
+        final Object value = attributeValue.getValue();
+        assertNull("EvaluationResult value should be null!", value);
     }
 
     private EvaluationResult doFindAttribute() {

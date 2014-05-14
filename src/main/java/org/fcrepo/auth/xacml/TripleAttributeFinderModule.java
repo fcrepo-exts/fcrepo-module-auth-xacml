@@ -100,17 +100,6 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
     }
 
     /**
-     * Does not supports selectors.
-     * 
-     * @return if selector is supported.
-     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule# isSelectorSupported()
-     */
-    @Override
-    public final boolean isSelectorSupported() {
-        return false;
-    }
-
-    /**
      * Supports resource attributes.
      * 
      * @return the supported designator types.
