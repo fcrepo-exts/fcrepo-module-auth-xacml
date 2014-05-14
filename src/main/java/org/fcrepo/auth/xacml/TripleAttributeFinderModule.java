@@ -15,24 +15,6 @@
  */
 package org.fcrepo.auth.xacml;
 
-import java.net.URI;
-import java.util.Set;
-
-import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.FedoraResource;
-import org.fcrepo.kernel.services.NodeService;
-import org.jboss.security.xacml.sunxacml.EvaluationCtx;
-import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
-import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
-import org.jboss.security.xacml.sunxacml.ctx.Status;
-import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
@@ -41,20 +23,54 @@ import static org.jboss.security.xacml.sunxacml.attr.BagAttribute.createEmptyBag
 import static org.jboss.security.xacml.sunxacml.ctx.Status.STATUS_PROCESSING_ERROR;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+
+import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.FedoraResource;
+import org.fcrepo.kernel.rdf.IdentifierTranslator;
+import org.fcrepo.kernel.rdf.impl.DefaultIdentifierTranslator;
+import org.fcrepo.kernel.services.NodeService;
+
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.attr.AnyURIAttribute;
+import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
+import org.jboss.security.xacml.sunxacml.attr.BagAttribute;
+import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
+import org.jboss.security.xacml.sunxacml.ctx.Status;
+import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.graph.NodeFactory;
+import com.hp.hpl.jena.sparql.core.DatasetGraph;
+import com.hp.hpl.jena.sparql.core.Quad;
 
 /**
- * Finds resource attributes based on triples in the Fedora graph. Retrieves
- * values where the attribute URI matches the triple predicate and the triple
- * object can be supplied as the requested data type.
+ * Finds resource attributes based on triples in the Fedora graph. Retrieves values where the attribute URI matches the
+ * triple predicate and the triple object can be supplied as the requested data type.
  *
  * @author Gregory Jansen
  * @author Andrew Woods
+ * @author Scott Prater
  */
 @Component("tripleAttributeFinderModule")
 public class TripleAttributeFinderModule extends AttributeFinderModule {
 
     private static final Logger LOGGER = getLogger(TripleAttributeFinderModule.class);
 
+    private static BagAttribute empty_bag;
+
+    Set<AttributeValue> attr_bag = new HashSet<>();
+
+    private static IdentifierTranslator idTranslator;
 
     /**
      * Fedora's ModeShape session factory.
@@ -84,8 +100,19 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
     }
 
     /**
+     * Does not supports selectors.
+     * 
+     * @return if selector is supported.
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule# isSelectorSupported()
+     */
+    @Override
+    public final boolean isSelectorSupported() {
+        return false;
+    }
+
+    /**
      * Supports resource attributes.
-     *
+     * 
      * @return the supported designator types.
      * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#getSupportedDesignatorTypes()
      */
@@ -97,9 +124,9 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
     /**
      * Finds the matching triples values.
      *
-     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute
-     * (java.net.URI, java.net.URI, java.net.URI, java.net.URI,
-     * org.jboss.security.xacml.sunxacml.EvaluationCtx, int)
+     * @attributeId The URI of the attribute key (the predicate of the triple)
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute (java.net.URI, java.net.URI,
+     *      java.net.URI, java.net.URI, org.jboss.security.xacml.sunxacml.EvaluationCtx, int)
      */
     @Override
     public final EvaluationResult findAttribute(final URI attributeType,
@@ -111,23 +138,24 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
         LOGGER.debug("findAttribute({}, {}, {}, {}, {}, {})",
                      attributeType, attributeId, issuer, subjectCategory, context, designatorType);
 
+        empty_bag = createEmptyBag(attributeType);
 
         // Make sure this is a Resource attribute
         if (designatorType != RESOURCE_TARGET) {
-            return new EvaluationResult(createEmptyBag(attributeType));
+            return new EvaluationResult(empty_bag);
         }
 
         final Session session;
         try {
             session = sessionFactory.getInternalSession();
 
-        } catch (RepositoryException e) {
+        } catch (final RepositoryException e) {
             LOGGER.debug("Error getting session!");
             final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Error getting session");
             return new EvaluationResult(status);
         }
 
-        // The resourceId is the path of the object be acted on
+        // The resourceId is the path of the object be acted on, retrieved from the PDP evaluation context
         final AttributeValue resourceIdAttValue = context.getResourceId();
         if (null == resourceIdAttValue) {
             LOGGER.debug("Context should have a resource-id attribute!");
@@ -139,19 +167,48 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
         // Get the resource be acted on
         final FedoraResource resource;
+        final String path;
+
         try {
             resource = nodeService.getObject(session, resourceId);
+            path = resource.getPath();
+            idTranslator = new DefaultIdentifierTranslator();
 
-        } catch (RepositoryException e) {
+        } catch (final RepositoryException e) {
             // If the object does not exist, it may be due to the action being "create"
-            return new EvaluationResult(createEmptyBag(attributeType));
+            return new EvaluationResult(empty_bag);
         }
 
         // Get the properties of the resource
-        // TODO: resource.getTriples()
+        final DatasetGraph properties;
 
-        // TODO: The result should have goodies
-        return new EvaluationResult(createEmptyBag(attributeType));
+        try {
+            properties = resource.getPropertiesDataset(idTranslator).asDatasetGraph();
+        } catch (final RepositoryException e) {
+            final Status status =
+                    new Status(singletonList(STATUS_PROCESSING_ERROR), "Error retrieving properties for [" + path + "]!");
+            return new EvaluationResult(status);
+        }
+
+        // Get the values of the properties matching the type
+        final Iterator<Quad> quads =
+                properties.find(Node.ANY, Node.ANY, NodeFactory.createURI(attributeType.toString()), Node.ANY);
+
+        // Add the properties to the bag
+        while (quads.hasNext()) {
+            final Quad quad = quads.next();
+            final String uri = quad.getObject().getURI();
+            LOGGER.debug("Found property: {}", uri);
+            attr_bag.add(new AnyURIAttribute(URI.create(uri)));
+        }
+
+        // Return the results, or any empty bag
+        if (attr_bag.isEmpty()) {
+            LOGGER.debug("No matching properties found");
+            return new EvaluationResult(empty_bag);
+        }
+
+        return new EvaluationResult(new BagAttribute(attributeType, attr_bag));
     }
 
 }
