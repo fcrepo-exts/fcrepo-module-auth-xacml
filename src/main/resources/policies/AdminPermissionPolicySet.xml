@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:fcrepo="http://fedora.info/definitions/v4/repository#"
         xsi:schemaLocation = "urn:oasis:names:tc:xacml:2.0:policy:schema:os http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-policy-schema-os.xsd"
         PolicySetId="info:fedora/policies/AdminPermissionPolicySet"
         PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:permit-overrides">
@@ -25,38 +24,38 @@
           </Action>
           <Action>
             <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
-              <ActionAttributeDesignator>set_property</ActionAttributeDesignator>
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">set_property</AttributeValue>
+              <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
             </ActionMatch>
           </Action>
           <Action>
             <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
-              <ActionAttributeDesignator>remove</ActionAttributeDesignator>
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">remove</AttributeValue>
+              <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
             </ActionMatch>
           </Action>
           <Action>
             <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
-              <ActionAttributeDesignator>remove_child_nodes</ActionAttributeDesignator>
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">remove_child_nodes</AttributeValue>
+              <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
             </ActionMatch>
           </Action>
           <Action>
             <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
-              <ActionAttributeDesignator>read</ActionAttributeDesignator>
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</AttributeValue>
+              <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
             </ActionMatch>
           </Action>
           <Action>
             <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
-              <ActionAttributeDesignator>read_access_control</ActionAttributeDesignator>
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read_access_control</AttributeValue>
+              <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
             </ActionMatch>
           </Action>
           <Action>
             <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
-              <ActionAttributeDesignator>modify_access_control</ActionAttributeDesignator>
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">modify_access_control</AttributeValue>
+              <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
             </ActionMatch>
           </Action>
         </Actions>
