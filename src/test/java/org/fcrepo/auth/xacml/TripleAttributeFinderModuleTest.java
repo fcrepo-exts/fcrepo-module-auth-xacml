@@ -93,6 +93,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
+    @Ignore("TODO")
     public void testFindAttributeSelector() throws Exception {
         final String contextPath = "contextPath";
         final Node namespaceNode = null;
@@ -109,6 +110,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
+    @Ignore("TODO")
     public void testFindAttributeWrongDesignator() throws Exception {
         assertIsEmptyResult(doFindAttribute(SUBJECT_TARGET));
     }
