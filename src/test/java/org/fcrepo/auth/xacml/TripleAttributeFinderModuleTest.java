@@ -28,9 +28,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import java.net.URI;
 import java.util.Set;
 
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.services.NodeService;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -56,7 +59,13 @@ public class TripleAttributeFinderModuleTest {
     private SessionFactory mockSessionFactory;
 
     @Mock
+    private Session mockSession;
+
+    @Mock
     private NodeService mockNodeService;
+
+    @Mock
+    private FedoraResource mockFedoraResource;
 
     @Before
     public void setUp() throws Exception {
@@ -65,6 +74,8 @@ public class TripleAttributeFinderModuleTest {
         finder = new TripleAttributeFinderModule();
         finder.sessionFactory = mockSessionFactory;
         finder.nodeService = mockNodeService;
+
+        when(mockSessionFactory.getInternalSession()).thenReturn(mockSession);
     }
 
     @After
@@ -156,6 +167,19 @@ public class TripleAttributeFinderModuleTest {
     // final String status = (String) result.getStatus().getCode().get(0);
     // assertEquals("Evaluation status should be STATUS_PROCESSING_ERROR!", status, Status.STATUS_PROCESSING_ERROR);
     // }
+
+    @Test
+    public void testFindAttributeNewResourceId() throws RepositoryException {
+        final String resourceId = "/no/such/path";
+
+        when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
+        when(mockFedoraResource.getPath()).thenThrow(new PathNotFoundException());
+
+        final EvaluationResult result = doFindAttribute(resourceId);
+        final BagAttribute bag = (BagAttribute) result.getAttributeValue();
+        assertTrue("EvaluationResult should be a bag!", bag.isBag());
+        assertTrue("Attribute bag should be empty!", bag.isEmpty());
+    }
 
     private void assertIsEmptyResult(final EvaluationResult result) {
         final BagAttribute attributeValue = (BagAttribute) result.getAttributeValue();
