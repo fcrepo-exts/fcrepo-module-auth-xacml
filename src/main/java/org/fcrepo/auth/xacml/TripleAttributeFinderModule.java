@@ -36,6 +36,7 @@ import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
+
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AnyURIAttribute;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -145,7 +146,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
                 context.getResourceAttribute(URI.create("http://www.w3.org/2001/XMLSchema#string"),
                         URIConstants.ATTRIBUTEID_RESOURCE_ID, null);
         final AttributeValue resourceIdAttValue = ridEvalRes.getAttributeValue();
-        if (resourceIdAttValue == null && resourceIdAttValue.getValue().toString().isEmpty()) {
+        if (resourceIdAttValue.getValue().toString().isEmpty()) {
             LOGGER.debug("Context should have a resource-id attribute!");
             final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Resource Id not found!");
             return new EvaluationResult(status);
