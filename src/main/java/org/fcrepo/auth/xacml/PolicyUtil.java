@@ -137,9 +137,14 @@ public class PolicyUtil {
         final EvaluationResult eval =
                 context.getActionAttribute(URI.create("http://www.w3.org/2001/XMLSchema#string"),
                         URIConstants.ATTRIBUTEID_ACTION_ID, null);
+        if (eval == null) {
+            return null;
+        }
         if (eval.getStatus() == null) {
             final AttributeValue val = eval.getAttributeValue();
-            result.add(val.getValue().toString());
+            if (val != null && val.getValue() != null) {
+                result.add(val.getValue().toString());
+            }
         }
         return result;
     }
