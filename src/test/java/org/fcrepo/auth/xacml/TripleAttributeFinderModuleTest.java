@@ -268,6 +268,30 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
+    public void testFindAttributeSetRootNodeProperty() throws RepositoryException {
+        final String resourceId = "/{ns}property";
+        final String[] actions = { "set_property" };
+
+        final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
+
+        doFindAttribute(resourceId, actions);
+        verify(mockNodeService).getObject(any(Session.class), propResourceId.capture());
+        assertEquals("/", propResourceId.getValue());
+    }
+
+    @Test
+    public void testFindAttributeAddRootChildNode() throws RepositoryException {
+        final String resourceId = "/{ns}child";
+        final String[] actions = { "add_node" };
+
+        final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
+
+        doFindAttribute(resourceId, actions);
+        verify(mockNodeService).getObject(any(Session.class), propResourceId.capture());
+        assertEquals("/", propResourceId.getValue());
+    }
+
+    @Test
     public void testFindAttributeBadProperties() throws RepositoryException {
         final String resourceId = "/{ns}no/{ns}such/{ns}path";
         final String[] actions = { "read" };
