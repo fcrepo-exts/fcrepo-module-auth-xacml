@@ -141,7 +141,7 @@ public class TripleAttributeFinderModuleTest {
         final String contextPath = "contextPath";
         final org.w3c.dom.Node namespaceNode = null;
         final URI attributeType = URI.create("uri:att-type");
-        final EvaluationCtx context = evaluationCtx("/path/to/resource", null);
+        final EvaluationCtx context = evaluationCtx("/{ns}path/{ns}to/{ns}resource", null);
         final String xpathVersion = "xpathVersion";
 
         final EvaluationResult result = finder.findAttribute(contextPath,
@@ -154,13 +154,13 @@ public class TripleAttributeFinderModuleTest {
 
     @Test
     public void testFindAttributeWrongDesignator() throws Exception {
-        assertIsEmptyResult(doFindAttribute(SUBJECT_TARGET, "/path/to/resource", null));
+        assertIsEmptyResult(doFindAttribute(SUBJECT_TARGET, "/{ns}path/{ns}to/{ns}resource", null));
     }
 
     @Test
     public void testFindAttribute() throws RepositoryException {
 
-        final String resourceId = "/path/to/resource";
+        final String resourceId = "/{ns}path/{ns}to/{ns}resource";
 
         when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
         when(mockFedoraResource.getTriples(any(IdentifierTranslator.class))).thenReturn(mockRdfStream);
@@ -188,7 +188,7 @@ public class TripleAttributeFinderModuleTest {
     @Test
     public void testFindAttributeBySelector() {
         final URI attributeType = URI.create("uri:att-type");
-        final EvaluationCtx context = evaluationCtx("/path/to/resource", null);
+        final EvaluationCtx context = evaluationCtx("/{ns}path/{ns}to/{ns}resource", null);
         final EvaluationResult result = finder.findAttribute("/", null, attributeType, context, "2.0");
         final BagAttribute bag = (BagAttribute) result.getAttributeValue();
         assertTrue("EvaluationResult should be a bag!", bag.isBag());
@@ -198,7 +198,7 @@ public class TripleAttributeFinderModuleTest {
     @Test
     public void testFindAttributeInvalidSession() throws RepositoryException {
         when(mockSessionFactory.getInternalSession()).thenThrow(new RepositoryException());
-        final EvaluationResult result = doFindAttribute("/path/to/resource");
+        final EvaluationResult result = doFindAttribute("/{ns}path/{ns}to/{ns}resource");
         final String status = (String) result.getStatus().getCode().get(0);
         assertEquals("Evaluation status should be STATUS_PROCESSING_ERROR!", status,
                 Status.STATUS_PROCESSING_ERROR);
@@ -218,7 +218,7 @@ public class TripleAttributeFinderModuleTest {
 
     @Test
     public void testFindAttributeNullResource() throws RepositoryException {
-        final String resourceId = "/no/such/path";
+        final String resourceId = "/{ns}no/{ns}such/{ns}path";
         final String[] actions = { "read" };
 
         when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(null);
@@ -231,7 +231,7 @@ public class TripleAttributeFinderModuleTest {
 
     @Test
     public void testFindAttributeNewResourceId() throws RepositoryException {
-        final String resourceId = "/no/such/path";
+        final String resourceId = "/{ns}no/{ns}such{ns}/path";
         final String[] actions = { "read" };
 
         when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
@@ -245,31 +245,31 @@ public class TripleAttributeFinderModuleTest {
 
     @Test
     public void testFindAttributeSetProperty() throws RepositoryException {
-        final String resourceId = "/path/to/node/property";
+        final String resourceId = "/{ns}path/{ns}to/{ns}node/{ns}property";
         final String[] actions = { "set_property" };
 
         final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
 
         doFindAttribute(resourceId, actions);
         verify(mockNodeService).getObject(any(Session.class), propResourceId.capture());
-        assertEquals("/path/to/node", propResourceId.getValue());
+        assertEquals("/{ns}path/{ns}to/{ns}node", propResourceId.getValue());
     }
 
     @Test
     public void testFindAttributeAddNode() throws RepositoryException {
-        final String resourceId = "/path/to/node/child";
+        final String resourceId = "/{ns}path/{ns}to/{ns}node/{ns}child";
         final String[] actions = { "add_node" };
 
         final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
 
         doFindAttribute(resourceId, actions);
         verify(mockNodeService).getObject(any(Session.class), propResourceId.capture());
-        assertEquals("/path/to/node", propResourceId.getValue());
+        assertEquals("/{ns}path/{ns}to/{ns}node", propResourceId.getValue());
     }
 
     @Test
     public void testFindAttributeBadProperties() throws RepositoryException {
-        final String resourceId = "/no/such/path";
+        final String resourceId = "/{ns}no/{ns}such/{ns}path";
         final String[] actions = { "read" };
 
         when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
@@ -284,7 +284,7 @@ public class TripleAttributeFinderModuleTest {
 
     @Test
     public void testFindAttributeNoAttr() throws RepositoryException {
-        final String resourceId = "/no/such/path";
+        final String resourceId = "/{ns}no/{ns}such/{ns}path";
 
         when(mockMatches.hasNext()).thenReturn(false);
 
