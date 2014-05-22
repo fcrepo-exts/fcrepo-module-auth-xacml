@@ -44,6 +44,10 @@ public class XACMLTestUtil {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(XACMLTestUtil.class);
 
+    private XACMLTestUtil () {
+        // not called
+    }
+
     public static void addPolicy(final RolesFadTestObjectBean policies, final File path) throws Exception {
         final String xacml = FileUtils.readFileToString(path);
         policies.addDatastream(FilenameUtils.getBaseName(path.getName()), xacml);
@@ -94,7 +98,8 @@ public class XACMLTestUtil {
         final StringBuilder sb = new StringBuilder();
         sb.append("INSERT { ")
                 .append(MessageFormat
-                        .format("<{0}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://fedora.info/definitions/v4/authorization#xacmlAssignable> . ",
+                        .format("<{0}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> " +
+                                "<http://fedora.info/definitions/v4/authorization#xacmlAssignable> . ",
                                 subjectURI)).append(
                         MessageFormat.format("<{0}> <http://fedora.info/definitions/v4/authorization#policy> <{1}> . ",
                                 subjectURI, policyURI)).append("} WHERE { }");

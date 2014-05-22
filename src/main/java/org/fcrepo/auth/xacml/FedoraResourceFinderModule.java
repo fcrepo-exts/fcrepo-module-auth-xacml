@@ -128,7 +128,7 @@ public class FedoraResourceFinderModule extends ResourceFinderModule {
     private void findChildren( final Node node, final Set<String> children, final boolean recurse )
         throws RepositoryException {
         for ( final NodeIterator nodes = node.getNodes(); nodes.hasNext(); ) {
-            Node child = nodes.nextNode();
+            final Node child = nodes.nextNode();
             if ( !isInternalNode.apply(child) && !child.getName().equals(JCR_CONTENT) ) {
 
                 children.add( child.getPath() );

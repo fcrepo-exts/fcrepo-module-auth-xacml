@@ -39,6 +39,10 @@ import org.w3c.dom.Element;
  */
 public class PolicyUtil {
 
+    private PolicyUtil() {
+        //not called
+    }
+
     /**
      * Extract a policy set or policy ID for the document.
      *
