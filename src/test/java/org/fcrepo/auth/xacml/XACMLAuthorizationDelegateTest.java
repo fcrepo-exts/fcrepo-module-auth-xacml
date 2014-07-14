@@ -109,12 +109,6 @@ public class XACMLAuthorizationDelegateTest {
         setField(xacmlAD, "sparqlResourceAttributeFinderModule", mockSparqlRAFM);
     }
 
-    private Set<Principal> getFakePrincipals() {
-        final Set fakePrincipals = new HashSet();
-        fakePrincipals.add(mockUser);
-        return fakePrincipals;
-    }
-
     private Set getFakeResultSet() {
         final Set fakeResults = new HashSet();
         fakeResults.add(mockResult);
