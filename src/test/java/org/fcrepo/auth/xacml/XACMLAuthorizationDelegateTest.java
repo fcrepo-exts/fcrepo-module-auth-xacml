@@ -17,7 +17,7 @@ package org.fcrepo.auth.xacml;
 
 import static org.fcrepo.auth.common.FedoraAuthorizationDelegate.FEDORA_SERVLET_REQUEST;
 import static org.fcrepo.auth.common.FedoraAuthorizationDelegate.FEDORA_USER_PRINCIPAL;
-import static org.fcrepo.kernel.utils.TestHelpers.setField;
+import static org.fcrepo.http.commons.test.util.TestHelpers.setField;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;

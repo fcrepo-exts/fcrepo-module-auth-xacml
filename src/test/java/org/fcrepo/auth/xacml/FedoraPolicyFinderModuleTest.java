@@ -17,7 +17,7 @@ package org.fcrepo.auth.xacml;
 
 import static org.fcrepo.auth.xacml.URIConstants.POLICY_URI_PREFIX;
 import static org.fcrepo.auth.xacml.URIConstants.XACML_POLICY_PROPERTY;
-import static org.fcrepo.kernel.utils.TestHelpers.setField;
+import static org.fcrepo.http.commons.test.util.TestHelpers.setField;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

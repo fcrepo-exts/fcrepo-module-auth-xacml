@@ -15,7 +15,7 @@
  */
 package org.fcrepo.auth.xacml;
 
-import static org.fcrepo.kernel.utils.TestHelpers.setField;
+import static org.fcrepo.http.commons.test.util.TestHelpers.setField;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
