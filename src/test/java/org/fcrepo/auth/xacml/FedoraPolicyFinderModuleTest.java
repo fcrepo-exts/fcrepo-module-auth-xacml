@@ -41,7 +41,7 @@ import javax.jcr.Session;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.FedoraBinary;
-import org.fcrepo.kernel.services.DatastreamService;
+import org.fcrepo.kernel.services.BinaryService;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.PolicyReference;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -84,7 +84,7 @@ public class FedoraPolicyFinderModuleTest {
     private FedoraBinary mockBinary;
 
     @Mock
-    private DatastreamService mockDsService;
+    private BinaryService mockDsService;
 
     @Mock
     private PolicyFinder mockFinder;
@@ -114,7 +114,7 @@ public class FedoraPolicyFinderModuleTest {
 
         when(mockPolicyProperty.getNode()).thenReturn(mockPolicyNode);
 
-        when(mockDsService.asDatastream(mockPolicyNode)).thenReturn(mockPolicyDs);
+        when(mockDsService.asBinary(mockPolicyNode)).thenReturn(mockBinary);
 
         finderModule = new FedoraPolicyFinderModule();
         setField(finderModule, "sessionFactory", mockSessionFactory);
@@ -163,7 +163,8 @@ public class FedoraPolicyFinderModuleTest {
 
         when(mockPolicyDs.getBinary()).thenReturn(mockBinary);
         when(mockBinary.getContent()).thenReturn(this.getClass().getResourceAsStream("/xacml/testPolicy.xml"));
-        when(mockDsService.findOrCreateDatastream(any(Session.class), eq(policyPath))).thenReturn(mockPolicyDs);
+
+        when(mockDsService.findOrCreateBinary(any(Session.class), eq(policyPath))).thenReturn(mockBinary);
 
         final PolicyFinderResult result = finderModule.findPolicy(idReference, 0, null, null);
 
@@ -180,7 +181,7 @@ public class FedoraPolicyFinderModuleTest {
 
         when(mockPolicyDs.getBinary()).thenReturn(mockBinary);
         when(mockBinary.getContent())
-        .thenReturn(this.getClass().getResourceAsStream("/xacml/adminRolePolicySet.xml"));
+                .thenReturn(this.getClass().getResourceAsStream("/xacml/adminRolePolicySet.xml"));
 
         final String referencedId = "fcrepo:policies/AdminPermissionPolicySet";
         final Datastream referencedPolicyDs = mock(Datastream.class);
@@ -188,7 +189,7 @@ public class FedoraPolicyFinderModuleTest {
         when(referencedPolicyDs.getBinary()).thenReturn(referencedPolicyBinary);
         when(referencedPolicyBinary.getContent()).thenReturn(
                 this.getClass().getResourceAsStream("/xacml/adminPermissionPolicySet.xml"));
-        when(mockDsService.findOrCreateDatastream(any(Session.class), eq(referencedId))).thenReturn(referencedPolicyDs);
+        when(mockDsService.findOrCreateBinary(any(Session.class), eq(referencedId))).thenReturn(referencedPolicyBinary);
 
         final FedoraEvaluationCtxBuilder ctxBuilder = new FedoraEvaluationCtxBuilder();
         ctxBuilder.addResourceID("/{}myPath");
