@@ -29,10 +29,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.FedoraBinary;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
-import org.fcrepo.kernel.services.DatastreamService;
+import org.fcrepo.kernel.services.BinaryService;
 import org.fcrepo.kernel.services.NodeService;
 import org.jboss.security.xacml.sunxacml.AbstractPolicy;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
@@ -68,7 +67,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
     private SessionFactory sessionFactory;
 
     @Autowired
-    private DatastreamService datastreamService;
+    private BinaryService datastreamService;
 
     @Autowired
     private NodeService nodeService;
@@ -101,8 +100,8 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
      * @param policyDatastream
      * @return
      */
-    private AbstractPolicy getPolicy(final Datastream policyDatastream) {
-        return loadPolicy(policyDatastream.getBinary());
+    private AbstractPolicy getPolicy(final FedoraBinary policyDatastream) {
+        return loadPolicy(policyDatastream);
     }
 
     /**
@@ -179,7 +178,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
             }
 
             final Property prop = nodeWithPolicy.getProperty(XACML_POLICY_PROPERTY);
-            final Datastream policyDatastream = datastreamService.asDatastream(prop.getNode());
+            final FedoraBinary policyDatastream = datastreamService.asBinary(prop.getNode());
 
             if (policyDatastream == null) {
                 return new PolicyFinderResult();
@@ -228,7 +227,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
 
             final String path = PolicyUtil.getPathForId(id);
             final Session internalSession = sessionFactory.getInternalSession();
-            final Datastream policyDatastream = datastreamService.findOrCreateDatastream(internalSession, path);
+            final FedoraBinary policyDatastream = datastreamService.findOrCreateBinary(internalSession, path);
             final AbstractPolicy policy = getPolicy(policyDatastream);
 
             return new PolicyFinderResult(policy);

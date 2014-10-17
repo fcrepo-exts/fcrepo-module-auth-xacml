@@ -37,8 +37,8 @@ import javax.jcr.Session;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
-import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
 import org.fcrepo.kernel.utils.iterators.RdfStream;
 
@@ -80,7 +80,7 @@ public class TripleAttributeFinderModuleTest {
     private FedoraResource mockFedoraResource;
 
     @Mock
-    private IdentifierTranslator mockIdentifierTranslator;
+    private DefaultIdentifierTranslator mockIdentifierTranslator;
 
     @Mock
     private Model mockModel;
@@ -148,9 +148,9 @@ public class TripleAttributeFinderModuleTest {
 
         final EvaluationResult result = finder.findAttribute(contextPath,
                 namespaceNode,
-                                                             attributeType,
-                                                             context,
-                                                             xpathVersion);
+                attributeType,
+                context,
+                xpathVersion);
         assertIsEmptyResult(result);
     }
 
@@ -165,9 +165,9 @@ public class TripleAttributeFinderModuleTest {
         final String resourceId = "/{ns}path/{ns}to/{ns}resource";
 
         when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
-        when(mockFedoraResource.getTriples(any(IdentifierTranslator.class), eq(PropertiesRdfContext.class))).thenReturn(
-                mockRdfStream);
-        when(mockIdentifierTranslator.getSubject(any(String.class))).thenReturn(mockResource);
+        when(mockFedoraResource.getTriples(any(DefaultIdentifierTranslator.class)
+                , eq(PropertiesRdfContext.class))).thenReturn(mockRdfStream);
+        when(mockIdentifierTranslator.toDomain(any(String.class))).thenReturn(mockResource);
         when(mockFedoraResource.getPath()).thenReturn(resourceId);
         when(mockRdfStream.asModel()).thenReturn(mockModel);
         when(mockModel.listObjectsOfProperty(any(Resource.class),
@@ -300,8 +300,8 @@ public class TripleAttributeFinderModuleTest {
         final String[] actions = { "read" };
 
         when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
-        when(mockFedoraResource.getTriples(any(IdentifierTranslator.class), eq(PropertiesRdfContext.class))).thenThrow(
-                new RepositoryRuntimeException("expected"));
+        when(mockFedoraResource.getTriples(any(DefaultIdentifierTranslator.class),
+                eq(PropertiesRdfContext.class))).thenThrow(new RepositoryRuntimeException("expected"));
 
         final EvaluationResult result = doFindAttribute(resourceId, actions);
         final String status = (String) result.getStatus().getCode().get(0);
@@ -342,7 +342,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     private EvaluationResult doFindAttribute(final int argDesignatorType, final String resourceId,
-            final String[] actions) {
+                                             final String[] actions) {
         final URI attributeType = URI.create("http://www.w3.org/2001/XMLSchema#anyURI");
         final URI attributeId = URI.create("uri:att-id");
         final URI issuer = null;
@@ -351,11 +351,11 @@ public class TripleAttributeFinderModuleTest {
         final int designatorType = argDesignatorType == -1 ? RESOURCE_TARGET : argDesignatorType;
 
         final EvaluationResult result = finder.findAttribute(attributeType,
-                                                             attributeId,
-                                                             issuer,
-                                                             subjectCategory,
-                                                             context,
-                                                             designatorType);
+                attributeId,
+                issuer,
+                subjectCategory,
+                context,
+                designatorType);
 
         assertNotNull("EvaluationResult should not be null!", result);
         return result;

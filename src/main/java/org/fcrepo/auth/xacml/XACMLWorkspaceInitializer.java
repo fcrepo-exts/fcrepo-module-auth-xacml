@@ -32,7 +32,8 @@ import org.apache.commons.io.FileUtils;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraBinary;
 import org.fcrepo.kernel.exception.InvalidChecksumException;
-import org.fcrepo.kernel.services.DatastreamService;
+import org.fcrepo.kernel.services.BinaryService;
+import org.fcrepo.storage.policy.StoragePolicyDecisionPointImpl;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,11 +58,14 @@ public class XACMLWorkspaceInitializer {
     private SessionFactory sessionFactory;
 
     @Autowired
-    private DatastreamService datastreamService;
+    private BinaryService datastreamService;
 
     private File initialPoliciesDirectory;
 
     private File initialRootPolicyFile;
+
+    //TODO
+    private StoragePolicyDecisionPointImpl storagePolicyDecisionPoint = new StoragePolicyDecisionPointImpl();
 
     /**
      * Constructor
@@ -75,7 +79,7 @@ public class XACMLWorkspaceInitializer {
         }
         if (null == initialPoliciesDirectory.list() || 0 == initialPoliciesDirectory.list().length) {
             throw new IllegalArgumentException("InitialPolicyDirectory does not exist or is empty! " +
-                                                       initialPoliciesDirectory.getAbsolutePath());
+                    initialPoliciesDirectory.getAbsolutePath());
         }
         if (null == initialRootPolicyFile || !initialRootPolicyFile.exists()) {
             throw new IllegalArgumentException("InitialRootPolicyFile is null or does not exist!");
@@ -154,12 +158,12 @@ public class XACMLWorkspaceInitializer {
             for (final File p : initialPoliciesDirectory.listFiles()) {
                 final String id = PolicyUtil.getID(FileUtils.openInputStream(p));
                 final String repoPath = PolicyUtil.getPathForId(id);
-                final FedoraBinary binary = datastreamService.getBinary(session, repoPath);
+                final FedoraBinary binary = datastreamService.findOrCreateBinary(session, repoPath);
                 binary.setContent(new FileInputStream(p),
-                                  "application/xml",
-                                  null,
-                                  p.getName(),
-                                  datastreamService.getStoragePolicyDecisionPoint());
+                        "application/xml",
+                        null,
+                        p.getName(),
+                        storagePolicyDecisionPoint);
 
                 LOGGER.info("Add initial policy {} at {}", p.getAbsolutePath(), binary.getPath());
             }
