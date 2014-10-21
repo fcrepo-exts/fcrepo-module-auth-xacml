@@ -32,7 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraBinary;
 import org.fcrepo.kernel.exception.InvalidChecksumException;
-import org.fcrepo.kernel.services.DatastreamService;
+import org.fcrepo.kernel.services.BinaryService;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +57,7 @@ public class XACMLWorkspaceInitializer {
     private SessionFactory sessionFactory;
 
     @Autowired
-    private DatastreamService datastreamService;
+    private BinaryService binaryService;
 
     private File initialPoliciesDirectory;
 
@@ -154,12 +154,12 @@ public class XACMLWorkspaceInitializer {
             for (final File p : initialPoliciesDirectory.listFiles()) {
                 final String id = PolicyUtil.getID(FileUtils.openInputStream(p));
                 final String repoPath = PolicyUtil.getPathForId(id);
-                final FedoraBinary binary = datastreamService.getBinary(session, repoPath);
+                final FedoraBinary binary = binaryService.findOrCreateBinary(session, repoPath);
                 binary.setContent(new FileInputStream(p),
                                   "application/xml",
                                   null,
                                   p.getName(),
-                                  datastreamService.getStoragePolicyDecisionPoint());
+                                  null);
 
                 LOGGER.info("Add initial policy {} at {}", p.getAbsolutePath(), binary.getPath());
             }

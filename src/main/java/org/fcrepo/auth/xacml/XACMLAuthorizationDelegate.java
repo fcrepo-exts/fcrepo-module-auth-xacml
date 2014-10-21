@@ -148,6 +148,12 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
                 break;
             }
         }
+
+        LOGGER.debug("Request for actions: {}, on path: {}, with roles: {}. Permission={}",
+                     actions,
+                     absPath,
+                     roles,
+                     permit);
         return permit;
     }
 

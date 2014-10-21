@@ -6,6 +6,12 @@
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
+  <context:property-placeholder/>
+
+  <!-- Context that houses JAX-RS Resources that compose the API
+      as well as some utility gear. -->
+  <context:annotation-config/>
+
   <bean class="org.fcrepo.http.commons.session.SessionFactory"/>
 
   <!-- Mints PIDs-->
@@ -13,7 +19,9 @@
 
   <!-- Identifier translation chain -->
   <util:list id="translationChain" value-type="org.fcrepo.kernel.identifiers.InternalIdentifierConverter">
+    <bean class="org.fcrepo.kernel.impl.identifiers.HashConverter"/>
     <bean class="org.fcrepo.kernel.impl.identifiers.NamespaceConverter"/>
   </util:list>
-  <context:component-scan base-package="org.fcrepo.kernel, org.fcrepo.http, org.fcrepo.serialization, org.fcrepo.auth.roles.common"  />
+
+  <context:component-scan base-package="org.fcrepo"  />
 </beans>

@@ -30,6 +30,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
 import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -38,6 +40,8 @@ import org.w3c.dom.Element;
  *
  */
 public class PolicyUtil {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PolicyUtil.class);
 
     private PolicyUtil() {
         //not called
@@ -109,6 +113,8 @@ public class PolicyUtil {
      * @return a Node in session
      */
     public static Node getFirstRealNode(final String modepath, final Session session) {
+        LOGGER.debug("Finding firstRealNode for path: {}", modepath);
+
         Node node = null;
         for (String path = modepath; path.contains("/{"); path = path.substring(0, path.lastIndexOf("/{"))) {
             try {
@@ -126,6 +132,8 @@ public class PolicyUtil {
                 throw new Error("Cannot reach repository", e);
             }
         }
+
+        LOGGER.debug("Found firstRealNode for path: {}", modepath);
         return node;
     }
 

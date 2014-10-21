@@ -28,14 +28,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.identifiers.IdentifierConverter;
 import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
-import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
 
@@ -69,7 +68,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
     private static BagAttribute empty_bag;
 
-    private static IdentifierTranslator idTranslator;
+    private static IdentifierConverter<Resource, FedoraResource> idTranslator;
 
     /**
      * Fedora's ModeShape session factory.
@@ -158,8 +157,12 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
         // if dealing with set_property action, use parent node for triples
         final Set<String> actions = PolicyUtil.getActions(context);
         if (actions.contains("set_property") || actions.contains("add_node")) {
-            resourceId = resourceId.substring(0, resourceId.lastIndexOf("/{"));
-            if (resourceId.length() == 0) {
+            final int index = resourceId.lastIndexOf("/{");
+            if (index > -1) {
+                resourceId = resourceId.substring(0, index);
+            }
+
+            if (resourceId.isEmpty()) {
                 resourceId = "/";
             }
         }
@@ -174,7 +177,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
                 return new EvaluationResult(empty_bag);
             }
             path = resource.getPath();
-            idTranslator = new DefaultIdentifierTranslator();
+            idTranslator = new DefaultIdentifierTranslator(session);
 
         } catch (final RepositoryRuntimeException e) {
             // If the object does not exist, it may be due to the action being "create"
@@ -196,11 +199,9 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
             return new EvaluationResult(status);
         }
 
-        Resource graphNode;
-        try {
-            graphNode = idTranslator.getSubject(resource.getPath());
-        } catch (final RepositoryException e) {
-            LOGGER.debug("Cannot get subject for[{}]: {}", resource.getPath(), e);
+        final Resource graphNode = idTranslator.reverse().convert(resource);
+        if (null == graphNode) {
+            LOGGER.debug("Cannot get subject for[{}]", resource.getPath());
             final Status status =
                     new Status(singletonList(STATUS_PROCESSING_ERROR),
                             "Error retrieving properties for [" + path + "]!");
