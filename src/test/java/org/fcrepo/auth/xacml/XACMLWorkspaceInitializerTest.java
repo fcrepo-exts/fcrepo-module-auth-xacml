@@ -32,8 +32,8 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.Datastream;
-import org.fcrepo.kernel.FedoraBinary;
+import org.fcrepo.kernel.models.NonRdfSourceDescription;
+import org.fcrepo.kernel.models.FedoraBinary;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 
 import org.fcrepo.kernel.services.BinaryService;
@@ -65,7 +65,7 @@ public class XACMLWorkspaceInitializerTest {
     private BinaryService mockBinaryService;
 
     @Mock
-    Datastream mockDatastream;
+    NonRdfSourceDescription mockNonRdfSourceDescription;
 
     @Mock
     FedoraBinary mockBinary;
@@ -76,8 +76,8 @@ public class XACMLWorkspaceInitializerTest {
 
         when(mockSessionFactory.getInternalSession()).thenReturn(mockSession);
         when(mockSession.getRootNode()).thenReturn(mockNode);
-        when(mockBinaryService.findOrCreateBinary(eq(mockSession), anyString())).thenReturn(mockBinary);
-        when(mockDatastream.getPath()).thenReturn("/dummy/test/path");
+        when(mockBinaryService.findOrCreate(eq(mockSession), anyString())).thenReturn(mockBinary);
+        when(mockNonRdfSourceDescription.getPath()).thenReturn("/dummy/test/path");
 
         final File initialPoliciesDirectory = policiesDirectory();
         final File initialRootPolicyFile = rootPolicyFile();
@@ -118,12 +118,12 @@ public class XACMLWorkspaceInitializerTest {
 
     @Test
     public void testInit() throws Exception {
-        when(mockBinaryService.findOrCreateBinary(eq(mockSession), anyString())).thenReturn(mockBinary);
+        when(mockBinaryService.findOrCreate(eq(mockSession), anyString())).thenReturn(mockBinary);
 
         xacmlWI.init();
 
         final int expectedFiles = policiesDirectory().list().length;
-        verify(mockBinaryService, times(expectedFiles)).findOrCreateBinary(eq(mockSession), anyString());
+        verify(mockBinaryService, times(expectedFiles)).findOrCreate(eq(mockSession), anyString());
 
         verify(mockNode).addMixin("authz:xacmlAssignable");
         verify(mockNode).setProperty(eq("authz:policy"), any(Node.class));
@@ -138,7 +138,7 @@ public class XACMLWorkspaceInitializerTest {
 
     @Test(expected = Error.class)
     public void testInitLinkRootToPolicyException() throws Exception {
-        when(mockBinaryService.findOrCreateBinary(eq(mockSession), anyString())).thenReturn(mockBinary);
+        when(mockBinaryService.findOrCreate(eq(mockSession), anyString())).thenReturn(mockBinary);
         when(mockSession.getRootNode()).thenThrow(new RepositoryException("expected"));
 
         xacmlWI.init();

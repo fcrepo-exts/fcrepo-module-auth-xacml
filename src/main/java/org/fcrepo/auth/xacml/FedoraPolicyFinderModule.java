@@ -30,8 +30,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.jcr.FedoraJcrTypes;
-import org.fcrepo.kernel.FedoraBinary;
-import org.fcrepo.kernel.FedoraResource;
+import org.fcrepo.kernel.models.FedoraBinary;
+import org.fcrepo.kernel.models.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.services.BinaryService;
 import org.fcrepo.kernel.services.NodeService;
@@ -185,9 +185,9 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
             final Property prop = nodeWithPolicy.getProperty(XACML_POLICY_PROPERTY);
 
             final FedoraBinary policyBinary;
-            final FedoraResource resource = nodeService.getObject(internalSession, prop.getNode().getPath());
-            if (resource.hasType(FedoraJcrTypes.FEDORA_DATASTREAM)) {
-                policyBinary = binaryService.findOrCreateBinary(internalSession, resource.getNode().getPath());
+            final FedoraResource resource = nodeService.find(internalSession, prop.getNode().getPath());
+            if (resource.hasType(FedoraJcrTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {
+                policyBinary = binaryService.findOrCreate(internalSession, resource.getNode().getPath());
 
             } else {
                 LOGGER.warn("Policy Binary not found for: {}", path);
@@ -244,9 +244,9 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
             final Session internalSession = sessionFactory.getInternalSession();
 
             final FedoraBinary policyBinary;
-            final FedoraResource resource = nodeService.getObject(internalSession, path);
-            if (resource.hasType(FedoraJcrTypes.FEDORA_DATASTREAM)) {
-                policyBinary = binaryService.findOrCreateBinary(internalSession, resource.getNode().getPath());
+            final FedoraResource resource = nodeService.find(internalSession, path);
+            if (resource.hasType(FedoraJcrTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {
+                policyBinary = binaryService.findOrCreate(internalSession, resource.getNode().getPath());
 
             } else {
                 LOGGER.warn("Policy Binary not found for: {}", path);

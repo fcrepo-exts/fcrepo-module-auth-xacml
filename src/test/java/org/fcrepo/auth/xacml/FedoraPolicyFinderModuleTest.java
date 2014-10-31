@@ -40,8 +40,8 @@ import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.jcr.FedoraJcrTypes;
-import org.fcrepo.kernel.Datastream;
-import org.fcrepo.kernel.FedoraBinary;
+import org.fcrepo.kernel.models.NonRdfSourceDescription;
+import org.fcrepo.kernel.models.FedoraBinary;
 import org.fcrepo.kernel.services.BinaryService;
 import org.fcrepo.kernel.services.NodeService;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
@@ -80,10 +80,10 @@ public class FedoraPolicyFinderModuleTest {
     private Node mockPolicyNode;
 
     @Mock
-    private Datastream mockPolicyDs;
+    private NonRdfSourceDescription mockPolicyDs;
 
     @Mock
-    private Datastream mockResource;
+    private NonRdfSourceDescription mockResource;
 
     @Mock
     private FedoraBinary mockBinary;
@@ -122,13 +122,13 @@ public class FedoraPolicyFinderModuleTest {
 
         when(mockPolicyProperty.getNode()).thenReturn(mockPolicyNode);
 
-        when(mockNodeService.getObject(any(Session.class), anyString())).thenReturn(mockResource);
-        when(mockResource.hasType(FedoraJcrTypes.FEDORA_DATASTREAM)).thenReturn(true);
-        when(mockResource.getBinary()).thenReturn(mockBinary);
+        when(mockNodeService.find(any(Session.class), anyString())).thenReturn(mockResource);
+        when(mockResource.hasType(FedoraJcrTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)).thenReturn(true);
+        when(mockResource.getDescribedResource()).thenReturn(mockBinary);
 
         when(mockResource.getNode()).thenReturn(mockNode);
         when(mockNode.getPath()).thenReturn("/{}myPath");
-        when(mockBinaryService.findOrCreateBinary(any(Session.class), anyString())).thenReturn(mockBinary);
+        when(mockBinaryService.findOrCreate(any(Session.class), anyString())).thenReturn(mockBinary);
 
         finderModule = new FedoraPolicyFinderModule();
         setField(finderModule, "sessionFactory", mockSessionFactory);
@@ -153,7 +153,7 @@ public class FedoraPolicyFinderModuleTest {
         when(mockNode.hasProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(true);
         when(mockNode.getProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(mockPolicyProperty);
 
-        when(mockPolicyDs.getBinary()).thenReturn(mockBinary);
+        when(mockPolicyDs.getDescribedResource()).thenReturn(mockBinary);
         when(mockBinary.getContent()).thenReturn(this.getClass().getResourceAsStream("/xacml/testPolicy.xml"));
 
         final FedoraEvaluationCtxBuilder ctxBuilder = new FedoraEvaluationCtxBuilder();
@@ -176,7 +176,7 @@ public class FedoraPolicyFinderModuleTest {
         final String idPath = POLICY_URI_PREFIX + policyPath;
         final URI idReference = new URI(idPath);
 
-        when(mockPolicyDs.getBinary()).thenReturn(mockBinary);
+        when(mockPolicyDs.getDescribedResource()).thenReturn(mockBinary);
         when(mockBinary.getContent()).thenReturn(this.getClass().getResourceAsStream("/xacml/testPolicy.xml"));
 
         final PolicyFinderResult result = finderModule.findPolicy(idReference, 0, null, null);
@@ -192,14 +192,14 @@ public class FedoraPolicyFinderModuleTest {
         when(mockNode.hasProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(true);
         when(mockNode.getProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(mockPolicyProperty);
 
-        when(mockPolicyDs.getBinary()).thenReturn(mockBinary);
+        when(mockPolicyDs.getDescribedResource()).thenReturn(mockBinary);
         when(mockBinary.getContent())
         .thenReturn(this.getClass().getResourceAsStream("/xacml/adminRolePolicySet.xml"));
 
         final String referencedId = "fcrepo:policies/AdminPermissionPolicySet";
-        final Datastream referencedPolicyDs = mock(Datastream.class);
+        final NonRdfSourceDescription referencedPolicyDs = mock(NonRdfSourceDescription.class);
         final FedoraBinary referencedPolicyBinary = mock(FedoraBinary.class);
-        when(referencedPolicyDs.getBinary()).thenReturn(referencedPolicyBinary);
+        when(referencedPolicyDs.getDescribedResource()).thenReturn(referencedPolicyBinary);
         when(referencedPolicyBinary.getContent()).thenReturn(
                 this.getClass().getResourceAsStream("/xacml/adminPermissionPolicySet.xml"));
 

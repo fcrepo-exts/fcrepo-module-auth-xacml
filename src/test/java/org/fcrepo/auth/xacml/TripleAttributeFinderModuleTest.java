@@ -35,7 +35,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.FedoraResource;
+import org.fcrepo.kernel.models.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.identifiers.IdentifierConverter;
 import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
@@ -164,7 +164,7 @@ public class TripleAttributeFinderModuleTest {
 
         final String resourceId = "/{ns}path/{ns}to/{ns}resource";
 
-        when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
+        when(mockNodeService.find(mockSession, resourceId)).thenReturn(mockFedoraResource);
         when(mockFedoraResource.getTriples(any(IdentifierConverter.class), eq(PropertiesRdfContext.class))).thenReturn(
                 mockRdfStream);
         when(mockIdentifierTranslator.reverse()).thenReturn(mockIdentifierTranslator);
@@ -212,7 +212,7 @@ public class TripleAttributeFinderModuleTest {
     public void testFindAttributeEmptyResourceId() throws RepositoryException {
         final String resourceId = "";
 
-        when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(null);
+        when(mockNodeService.find(mockSession, resourceId)).thenReturn(null);
 
         final EvaluationResult result = doFindAttribute(resourceId);
         final String status = (String) result.getStatus().getCode().get(0);
@@ -225,7 +225,7 @@ public class TripleAttributeFinderModuleTest {
         final String resourceId = "/{ns}no/{ns}such/{ns}path";
         final String[] actions = { "read" };
 
-        when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(null);
+        when(mockNodeService.find(mockSession, resourceId)).thenReturn(null);
 
         final EvaluationResult result = doFindAttribute(resourceId, actions);
         final BagAttribute bag = (BagAttribute) result.getAttributeValue();
@@ -238,7 +238,7 @@ public class TripleAttributeFinderModuleTest {
         final String resourceId = "/{ns}no/{ns}such{ns}/path";
         final String[] actions = { "read" };
 
-        when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
+        when(mockNodeService.find(mockSession, resourceId)).thenReturn(mockFedoraResource);
         when(mockFedoraResource.getPath()).thenThrow(new RepositoryRuntimeException("expected"));
 
         final EvaluationResult result = doFindAttribute(resourceId, actions);
@@ -255,7 +255,7 @@ public class TripleAttributeFinderModuleTest {
         final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
 
         doFindAttribute(resourceId, actions);
-        verify(mockNodeService).getObject(any(Session.class), propResourceId.capture());
+        verify(mockNodeService).find(any(Session.class), propResourceId.capture());
         assertEquals("/{ns}path/{ns}to/{ns}node", propResourceId.getValue());
     }
 
@@ -267,7 +267,7 @@ public class TripleAttributeFinderModuleTest {
         final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
 
         doFindAttribute(resourceId, actions);
-        verify(mockNodeService).getObject(any(Session.class), propResourceId.capture());
+        verify(mockNodeService).find(any(Session.class), propResourceId.capture());
         assertEquals("/{ns}path/{ns}to/{ns}node", propResourceId.getValue());
     }
 
@@ -279,7 +279,7 @@ public class TripleAttributeFinderModuleTest {
         final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
 
         doFindAttribute(resourceId, actions);
-        verify(mockNodeService).getObject(any(Session.class), propResourceId.capture());
+        verify(mockNodeService).find(any(Session.class), propResourceId.capture());
         assertEquals("/", propResourceId.getValue());
     }
 
@@ -291,7 +291,7 @@ public class TripleAttributeFinderModuleTest {
         final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
 
         doFindAttribute(resourceId, actions);
-        verify(mockNodeService).getObject(any(Session.class), propResourceId.capture());
+        verify(mockNodeService).find(any(Session.class), propResourceId.capture());
         assertEquals("/", propResourceId.getValue());
     }
 
@@ -300,7 +300,7 @@ public class TripleAttributeFinderModuleTest {
         final String resourceId = "/{ns}no/{ns}such/{ns}path";
         final String[] actions = { "read" };
 
-        when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
+        when(mockNodeService.find(mockSession, resourceId)).thenReturn(mockFedoraResource);
         when(mockFedoraResource.getTriples(any(IdentifierConverter.class), eq(PropertiesRdfContext.class))).thenThrow(
                 new RepositoryRuntimeException("expected"));
 
