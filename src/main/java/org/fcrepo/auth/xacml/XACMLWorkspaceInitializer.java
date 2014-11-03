@@ -27,16 +27,18 @@ import javax.jcr.nodetype.NodeType;
 import javax.jcr.nodetype.NodeTypeIterator;
 import javax.jcr.nodetype.NodeTypeTemplate;
 
-import com.google.common.collect.ImmutableList;
-import org.apache.commons.io.FileUtils;
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.FedoraBinary;
 import org.fcrepo.kernel.exception.InvalidChecksumException;
+import org.fcrepo.kernel.models.FedoraBinary;
 import org.fcrepo.kernel.services.BinaryService;
+
+import org.apache.commons.io.FileUtils;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Sets up node types and default policies for the XACML Authorization Delegate.
@@ -121,8 +123,8 @@ public class XACMLWorkspaceInitializer {
                 LOGGER.debug("registered node type: {}", nt.getName());
             }
 
-            // Add "authz:xacmlAssignable" mixin to "fedora:resource" type
-            final NodeType nodeType = mgr.getNodeType("fedora:resource");
+            // Add "authz:xacmlAssignable" mixin to "fedora:Resource" type
+            final NodeType nodeType = mgr.getNodeType("fedora:Resource");
             final NodeTypeTemplate nodeTypeTemplate = mgr.createNodeTypeTemplate(nodeType);
             final String[] superTypes = nodeType.getDeclaredSupertypeNames();
             final ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
@@ -154,7 +156,7 @@ public class XACMLWorkspaceInitializer {
             for (final File p : initialPoliciesDirectory.listFiles()) {
                 final String id = PolicyUtil.getID(FileUtils.openInputStream(p));
                 final String repoPath = PolicyUtil.getPathForId(id);
-                final FedoraBinary binary = binaryService.findOrCreateBinary(session, repoPath);
+                final FedoraBinary binary = binaryService.findOrCreate(session, repoPath);
                 binary.setContent(new FileInputStream(p),
                                   "application/xml",
                                   null,

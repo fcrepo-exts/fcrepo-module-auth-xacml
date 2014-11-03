@@ -4,4 +4,4 @@
 [authz:xacmlAssignable] mixin
  - authz:policy (REFERENCE)
 
-[authz:xacmlPolicy] > fedora:datastream mixin
+[authz:xacmlPolicy] > fedora:NonRdfSourceDescription mixin

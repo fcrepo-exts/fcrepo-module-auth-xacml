@@ -31,7 +31,7 @@ import java.util.Set;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.FedoraResource;
+import org.fcrepo.kernel.models.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.identifiers.IdentifierConverter;
 import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
@@ -171,7 +171,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
         final FedoraResource resource;
         final String path;
         try {
-            resource = nodeService.getObject(session, resourceId);
+            resource = nodeService.find(session, resourceId);
             if (resource == null) {
                 LOGGER.debug("Cannot find a fedora resource for {}", resourceId);
                 return new EvaluationResult(empty_bag);
