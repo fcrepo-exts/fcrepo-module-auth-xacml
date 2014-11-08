@@ -1,4 +1,4 @@
-<fedora = 'http://fedora.info/definitions/v4/rest-api#'>
+<fedora = 'http://fedora.info/definitions/v4/repository#'>
 <authz = 'http://fedora.info/definitions/v4/authorization#'>
 
 [authz:xacmlAssignable] mixin
