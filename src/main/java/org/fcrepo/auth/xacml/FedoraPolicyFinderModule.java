@@ -29,7 +29,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.jcr.FedoraJcrTypes;
+import org.fcrepo.kernel.FedoraJcrTypes;
 import org.fcrepo.kernel.models.FedoraBinary;
 import org.fcrepo.kernel.models.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
