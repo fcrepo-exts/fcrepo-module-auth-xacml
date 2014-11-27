@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>PDPFactory.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fedora Repository XACML Authorization Module</a> &gt; <a href="index.source.html" class="el_package">org.fcrepo.auth.xacml</a> &gt; <span class="el_source">PDPFactory.java</span></div><h1>PDPFactory.java</h1><pre class="source lang-java linenums">/**
+ * Copyright 2014 DuraSpace, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import java.util.Collections;
+
+import org.jboss.security.xacml.sunxacml.PDP;
+import org.jboss.security.xacml.sunxacml.PDPConfig;
+import org.jboss.security.xacml.sunxacml.finder.AttributeFinder;
+import org.jboss.security.xacml.sunxacml.finder.PolicyFinder;
+import org.jboss.security.xacml.sunxacml.finder.ResourceFinder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+
+/**
+ * Factory that creates the XACML Policy Decision Point.
+ *
+ * @author Gregory Jansen
+ */
+@Component
+<span class="fc" id="L37">public class PDPFactory {</span>
+
+<span class="fc" id="L39">    private static final Logger LOGGER = LoggerFactory.getLogger(PDPFactory.class);</span>
+
+    @Autowired
+    private FedoraPolicyFinderModule fedoraPolicyFinderModule;
+
+    @Autowired
+    private FedoraResourceFinderModule fedoraResourceFinderModule;
+
+    /**
+     * Make a PDP for the Fedora environment.
+     *
+     * @see org.springframework.beans.factory.FactoryBean#getObject()
+     * @return the PDP
+     */
+    public PDP makePDP() {
+<span class="fc" id="L54">        final PolicyFinder policyFinder = new PolicyFinder();</span>
+<span class="fc" id="L55">        policyFinder.setModules(Collections.singleton(fedoraPolicyFinderModule));</span>
+
+<span class="fc" id="L57">        final ResourceFinder resourceFinder = new ResourceFinder();</span>
+<span class="fc" id="L58">        resourceFinder.setModules(Collections.singletonList(fedoraResourceFinderModule));</span>
+
+<span class="fc" id="L60">        final PDPConfig pdpConfig = new PDPConfig(new AttributeFinder(), policyFinder, resourceFinder);</span>
+<span class="fc" id="L61">        final PDP pdp = new PDP(pdpConfig);</span>
+<span class="fc" id="L62">        LOGGER.info(&quot;XACML Policy Decision Point (PDP) initialized&quot;);</span>
+<span class="fc" id="L63">        return pdp;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.1.201405082137</span></div></body></html>
