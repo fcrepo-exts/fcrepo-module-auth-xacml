@@ -22,7 +22,7 @@
     <bean class="org.modeshape.jcr.ModeShapeEngine" init-method="start"/>
   
   <bean class="org.fcrepo.auth.xacml.XACMLWorkspaceInitializer" init-method="initTest">
-    <constructor-arg value="${fcrepo.xacml.initial.policies.dir:src/main/resources/policies}"/>
+    <constructor-arg value="${fcrepo.xacml.initial.policies.directory:src/main/resources/policies}"/>
     <constructor-arg value="${fcrepo.xacml.initial.root.policy.file:src/main/resources/policies/GlobalRolesPolicySet.xml}"/>
   </bean>
 
