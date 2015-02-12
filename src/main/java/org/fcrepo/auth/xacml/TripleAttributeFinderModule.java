@@ -31,13 +31,12 @@ import java.util.Set;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.models.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.identifiers.IdentifierConverter;
-import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
 import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
+import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
+import org.fcrepo.kernel.models.FedoraResource;
 import org.fcrepo.kernel.services.NodeService;
-
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AnyURIAttribute;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -64,173 +63,172 @@ import com.hp.hpl.jena.rdf.model.Resource;
 @Component("tripleAttributeFinderModule")
 public class TripleAttributeFinderModule extends AttributeFinderModule {
 
-    private static final Logger LOGGER = getLogger(TripleAttributeFinderModule.class);
+	private static final Logger LOGGER = getLogger(TripleAttributeFinderModule.class);
 
-    private static BagAttribute empty_bag;
+	private static BagAttribute empty_bag;
 
-    private static IdentifierConverter<Resource, FedoraResource> idTranslator;
+	private static IdentifierConverter<Resource, FedoraResource> idTranslator;
 
-    /**
-     * Fedora's ModeShape session factory.
-     */
-    @Autowired
-    protected SessionFactory sessionFactory;
+	/**
+	 * Fedora's ModeShape session factory.
+	 */
+	@Autowired
+	protected SessionFactory sessionFactory;
 
-    @Autowired
-    protected NodeService nodeService;
+	@Autowired
+	protected NodeService nodeService;
 
-    /**
-     * Supported designator types.
-     */
-    private static final Set<Integer> DESIGNATOR_TYPES = unmodifiableSet(singleton(RESOURCE_TARGET));
+	/**
+	 * Supported designator types.
+	 */
+	private static final Set<Integer> DESIGNATOR_TYPES = unmodifiableSet(singleton(RESOURCE_TARGET));
 
-    /**
-     * Supports designators.
-     *
-     * @return if designator is supported.
-     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
-     * isDesignatorSupported()
-     */
-    @Override
-    public final boolean isDesignatorSupported() {
-        return true;
-    }
+	/**
+	 * Supports designators.
+	 *
+	 * @return if designator is supported.
+	 * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#isDesignatorSupported()
+	 */
+	@Override
+	public final boolean isDesignatorSupported() {
+		return true;
+	}
 
-    /**
-     * Supports resource attributes.
-     *
-     * @return the supported designator types.
-     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#getSupportedDesignatorTypes()
-     */
-    @Override
-    public final Set<Integer> getSupportedDesignatorTypes() {
-        return DESIGNATOR_TYPES;
-    }
+	/**
+	 * Supports resource attributes.
+	 *
+	 * @return the supported designator types.
+	 * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#getSupportedDesignatorTypes()
+	 */
+	@Override
+	public final Set<Integer> getSupportedDesignatorTypes() {
+		return DESIGNATOR_TYPES;
+	}
 
-    /**
-     * Finds the matching triples values.
-     *
-     * @attributeId The URI of the attribute key (the predicate of the triple)
-     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute (java.net.URI, java.net.URI,
-     *      java.net.URI, java.net.URI, org.jboss.security.xacml.sunxacml.EvaluationCtx, int)
-     */
-    @Override
-    public final EvaluationResult findAttribute(final URI attributeType,
-                                                final URI attributeId,
-                                                final URI issuer,
-                                                final URI subjectCategory,
-                                                final EvaluationCtx context,
-                                                final int designatorType) {
-        LOGGER.debug("findAttribute({}, {}, {}, {}, {}, {})",
-                     attributeType, attributeId, issuer, subjectCategory, context, designatorType);
+	/**
+	 * Finds the matching triples values.
+	 *
+	 * @attributeId The URI of the attribute key (the predicate of the triple)
+	 * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute (java.net.URI, java.net.URI,
+	 *      java.net.URI, java.net.URI, org.jboss.security.xacml.sunxacml.EvaluationCtx, int)
+	 */
+	@Override
+	public final EvaluationResult findAttribute(final URI attributeType,
+			final URI attributeId,
+			final URI issuer,
+			final URI subjectCategory,
+			final EvaluationCtx context,
+			final int designatorType) {
+		LOGGER.debug("findAttribute({}, {}, {}, {}, {}, {})",
+				attributeType, attributeId, issuer, subjectCategory, context, designatorType);
 
-        empty_bag = createEmptyBag(attributeType);
+		empty_bag = createEmptyBag(attributeType);
 
-        // Make sure this is a Resource attribute
-        if (designatorType != RESOURCE_TARGET) {
-            LOGGER.debug("Not looking for a resource attribute");
-            return new EvaluationResult(empty_bag);
-        }
+		// Make sure this is a Resource attribute
+		if (designatorType != RESOURCE_TARGET) {
+			LOGGER.debug("Not looking for a resource attribute");
+			return new EvaluationResult(empty_bag);
+		}
 
-        final Session session;
-        try {
-            session = sessionFactory.getInternalSession();
-        } catch (final RepositoryRuntimeException e) {
-            LOGGER.debug("Error getting session!");
-            final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Error getting session");
-            return new EvaluationResult(status);
-        }
+		final Session session;
+		try {
+			session = sessionFactory.getInternalSession();
+		} catch (final RepositoryRuntimeException e) {
+			LOGGER.debug("Error getting session!");
+			final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Error getting session");
+			return new EvaluationResult(status);
+		}
 
-        // The resourceId is the path of the object be acted on, retrieved from the PDP evaluation context
-        final EvaluationResult ridEvalRes =
-                context.getResourceAttribute(URI.create("http://www.w3.org/2001/XMLSchema#string"),
-                        URIConstants.ATTRIBUTEID_RESOURCE_ID, null);
-        final AttributeValue resourceIdAttValue = ridEvalRes.getAttributeValue();
-        if (resourceIdAttValue.getValue().toString().isEmpty()) {
-            LOGGER.debug("Context should have a resource-id attribute!");
-            final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Resource Id not found!");
-            return new EvaluationResult(status);
-        }
+		// The resourceId is the path of the object be acted on, retrieved from the PDP evaluation context
+		final EvaluationResult ridEvalRes =
+				context.getResourceAttribute(URI.create("http://www.w3.org/2001/XMLSchema#string"),
+						URIConstants.ATTRIBUTEID_RESOURCE_ID, null);
+		final AttributeValue resourceIdAttValue = ridEvalRes.getAttributeValue();
+		if (resourceIdAttValue.getValue().toString().isEmpty()) {
+			LOGGER.debug("Context should have a resource-id attribute!");
+			final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Resource Id not found!");
+			return new EvaluationResult(status);
+		}
 
-        String resourceId = (String) resourceIdAttValue.getValue();
+		String resourceId = (String) resourceIdAttValue.getValue();
 
-        // if dealing with set_property action, use parent node for triples
-        final Set<String> actions = PolicyUtil.getActions(context);
-        if (actions.contains("set_property") || actions.contains("add_node")) {
-            final int index = resourceId.lastIndexOf("/{");
-            if (index > -1) {
-                resourceId = resourceId.substring(0, index);
-            }
+		// if dealing with set_property action, use parent node for triples
+		final Set<String> actions = PolicyUtil.getActions(context);
+		if (actions.contains("set_property") || actions.contains("add_node")) {
+			final int index = resourceId.lastIndexOf("/{");
+			if (index > -1) {
+				resourceId = resourceId.substring(0, index);
+			}
 
-            if (resourceId.isEmpty()) {
-                resourceId = "/";
-            }
-        }
+			if (resourceId.isEmpty()) {
+				resourceId = "/";
+			}
+		}
 
-        // Get the resource to be acted on
-        final FedoraResource resource;
-        final String path;
-        try {
-            resource = nodeService.find(session, resourceId);
-            if (resource == null) {
-                LOGGER.debug("Cannot find a fedora resource for {}", resourceId);
-                return new EvaluationResult(empty_bag);
-            }
-            path = resource.getPath();
-            idTranslator = new DefaultIdentifierTranslator(session);
+		// Get the resource to be acted on
+		final FedoraResource resource;
+		final String path;
+		try {
+			resource = nodeService.find(session, resourceId);
+			if (resource == null) {
+				LOGGER.debug("Cannot find a fedora resource for {}", resourceId);
+				return new EvaluationResult(empty_bag);
+			}
+			path = resource.getPath();
+			idTranslator = new DefaultIdentifierTranslator(session);
 
-        } catch (final RepositoryRuntimeException e) {
-            // If the object does not exist, it may be due to the action being "create"
-            return new EvaluationResult(empty_bag);
-        }
+		} catch (final RepositoryRuntimeException e) {
+			// If the object does not exist, it may be due to the action being "create"
+			return new EvaluationResult(empty_bag);
+		}
 
-        LOGGER.debug("Looking for properties on modeshape path {} with repo path {}", resourceId, path);
+		LOGGER.debug("Looking for properties on modeshape path {} with repo path {}", resourceId, path);
 
-        // Get the properties of the resource
-        Model properties;
-        try {
-            properties = resource.getTriples(idTranslator, PropertiesRdfContext.class).asModel();
+		// Get the properties of the resource
+		Model properties;
+		try {
+			properties = resource.getTriples(idTranslator, PropertiesRdfContext.class).asModel();
 
-        } catch (final RepositoryRuntimeException e) {
-            LOGGER.debug("Cannot retrieve any properties for [{}]:  {}", resourceId, e);
-            final Status status =
-                    new Status(singletonList(STATUS_PROCESSING_ERROR),
-                               "Error retrieving properties for [" + path + "]!");
-            return new EvaluationResult(status);
-        }
+		} catch (final RepositoryRuntimeException e) {
+			LOGGER.debug("Cannot retrieve any properties for [{}]:  {}", resourceId, e);
+			final Status status =
+					new Status(singletonList(STATUS_PROCESSING_ERROR),
+							"Error retrieving properties for [" + path + "]!");
+			return new EvaluationResult(status);
+		}
 
-        final Resource graphNode = idTranslator.reverse().convert(resource);
-        if (null == graphNode) {
-            LOGGER.debug("Cannot get subject for[{}]", resource.getPath());
-            final Status status =
-                    new Status(singletonList(STATUS_PROCESSING_ERROR),
-                            "Error retrieving properties for [" + path + "]!");
-            return new EvaluationResult(status);
-        }
+		final Resource graphNode = idTranslator.reverse().convert(resource);
+		if (null == graphNode) {
+			LOGGER.debug("Cannot get subject for[{}]", resource.getPath());
+			final Status status =
+					new Status(singletonList(STATUS_PROCESSING_ERROR),
+							"Error retrieving properties for [" + path + "]!");
+			return new EvaluationResult(status);
+		}
 
-        LOGGER.debug("Looking for properties on graph node: {}", graphNode.getURI());
+		LOGGER.debug("Looking for properties on graph node: {}", graphNode.getURI());
 
-        // Get the values of the properties matching the type
-        final Iterator<RDFNode> matches =
-                properties.listObjectsOfProperty(graphNode, properties.createProperty(attributeId.toString()));
+		// Get the values of the properties matching the type
+		final Iterator<RDFNode> matches =
+				properties.listObjectsOfProperty(graphNode, properties.createProperty(attributeId.toString()));
 
-        final Set<AttributeValue> attr_bag = new HashSet<>();
+		final Set<AttributeValue> attr_bag = new HashSet<>();
 
-        // Add the properties to the bag
-        while (matches.hasNext()) {
-            final RDFNode match = matches.next();
-            final String uri = match.asResource().getURI();
-            LOGGER.debug("Found property: {}", uri);
-            attr_bag.add(new AnyURIAttribute(URI.create(uri)));
-        }
+		// Add the properties to the bag
+		while (matches.hasNext()) {
+			final RDFNode match = matches.next();
+			final String uri = match.asResource().getURI();
+			LOGGER.debug("Found property: {}", uri);
+			attr_bag.add(new AnyURIAttribute(URI.create(uri)));
+		}
 
-        // Return the results, or any empty bag
-        if (attr_bag.isEmpty()) {
-            LOGGER.debug("No matching properties found");
-            return new EvaluationResult(empty_bag);
-        }
+		// Return the results, or any empty bag
+		if (attr_bag.isEmpty()) {
+			LOGGER.debug("No matching properties found");
+			return new EvaluationResult(empty_bag);
+		}
 
-        return new EvaluationResult(new BagAttribute(attributeType, attr_bag));
-    }
+		return new EvaluationResult(new BagAttribute(attributeType, attr_bag));
+	}
 
 }
