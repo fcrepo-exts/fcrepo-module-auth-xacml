@@ -88,8 +88,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
      * Supports designators.
      *
      * @return if designator is supported.
-     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
-     * isDesignatorSupported()
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#isDesignatorSupported()
      */
     @Override
     public final boolean isDesignatorSupported() {
@@ -110,7 +109,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
     /**
      * Finds the matching triples values.
      *
-     * @attributeId The URI of the attribute key (the predicate of the triple)
+     * @param attributeId The URI of the attribute key (the predicate of the triple)
      * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute (java.net.URI, java.net.URI,
      *      java.net.URI, java.net.URI, org.jboss.security.xacml.sunxacml.EvaluationCtx, int)
      */
