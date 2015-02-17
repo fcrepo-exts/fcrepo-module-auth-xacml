@@ -106,8 +106,8 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
     /**
      * Configures the delegate.
      *
-     * @throws IOException if pdp is null
-     * @throws RepositoryException if pdp is null
+     * @throws IOException
+     * @throws RepositoryException
      */
     @PostConstruct
     public final void init() throws RepositoryException, IOException {
@@ -125,9 +125,9 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
      */
     @Override
     public boolean rolesHavePermission(final Session session,
-            final String absPath,
-            final String[] actions,
-            final Set<String> roles) {
+                                       final String absPath,
+                                       final String[] actions,
+                                       final Set<String> roles) {
         final EvaluationCtx evaluationCtx = buildEvaluationContext(session, absPath, actions, roles);
         final ResponseCtx resp = pdp.evaluate(evaluationCtx);
 
@@ -149,10 +149,10 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         }
 
         LOGGER.debug("Request for actions: {}, on path: {}, with roles: {}. Permission={}",
-                actions,
-                absPath,
-                roles,
-                permit);
+                     actions,
+                     absPath,
+                     roles,
+                     permit);
         return permit;
     }
 
@@ -166,9 +166,9 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
      * @return an attribute finder
      */
     private EvaluationCtx buildEvaluationContext(final Session session,
-            final String absPath,
-            final String[] actions,
-            final Set<String> roles) {
+                                                 final String absPath,
+                                                 final String[] actions,
+                                                 final Set<String> roles) {
         final FedoraEvaluationCtxBuilder builder = new FedoraEvaluationCtxBuilder();
         builder.addFinderModule(currentEnvironmentAttributeModule);
         builder.addFinderModule(sparqlResourceAttributeFinderModule);

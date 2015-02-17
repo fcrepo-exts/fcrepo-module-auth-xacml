@@ -197,13 +197,13 @@ public class FedoraEvaluationCtxBuilder {
     }
 
     /**
-     * @param remoteAddr the remote address
+     * @param remoteAddr
      */
     public void addOriginalRequestIP(final String remoteAddr) {
         final Attribute a = new Attribute(ATTRIBUTEID_ENVIRONMENT_ORIGINAL_IP_ADDRESS,
-                null,
-                null,
-                new StringAttribute(remoteAddr));
+                                          null,
+                                          null,
+                                          new StringAttribute(remoteAddr));
         actionList.add(a);
     }
 

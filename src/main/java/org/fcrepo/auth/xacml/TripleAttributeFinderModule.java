@@ -31,12 +31,13 @@ import java.util.Set;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.models.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.identifiers.IdentifierConverter;
-import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
-import org.fcrepo.kernel.models.FedoraResource;
+import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
+
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AnyURIAttribute;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -114,13 +115,13 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
      */
     @Override
     public final EvaluationResult findAttribute(final URI attributeType,
-            final URI attributeId,
-            final URI issuer,
-            final URI subjectCategory,
-            final EvaluationCtx context,
-            final int designatorType) {
+                                                final URI attributeId,
+                                                final URI issuer,
+                                                final URI subjectCategory,
+                                                final EvaluationCtx context,
+                                                final int designatorType) {
         LOGGER.debug("findAttribute({}, {}, {}, {}, {}, {})",
-                attributeType, attributeId, issuer, subjectCategory, context, designatorType);
+                     attributeType, attributeId, issuer, subjectCategory, context, designatorType);
 
         empty_bag = createEmptyBag(attributeType);
 
@@ -193,7 +194,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
             LOGGER.debug("Cannot retrieve any properties for [{}]:  {}", resourceId, e);
             final Status status =
                     new Status(singletonList(STATUS_PROCESSING_ERROR),
-                            "Error retrieving properties for [" + path + "]!");
+                               "Error retrieving properties for [" + path + "]!");
             return new EvaluationResult(status);
         }
 
