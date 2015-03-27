@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>TripleAttributeFinderModule.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fedora Repository XACML Authorization Module</a> &gt; <a href="index.source.html" class="el_package">org.fcrepo.auth.xacml</a> &gt; <span class="el_source">TripleAttributeFinderModule.java</span></div><h1>TripleAttributeFinderModule.java</h1><pre class="source lang-java linenums">/**
+ * Copyright 2015 DuraSpace, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.unmodifiableSet;
+import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.RESOURCE_TARGET;
+import static org.jboss.security.xacml.sunxacml.attr.BagAttribute.createEmptyBag;
+import static org.jboss.security.xacml.sunxacml.ctx.Status.STATUS_PROCESSING_ERROR;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import javax.jcr.Session;
+
+import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.models.FedoraResource;
+import org.fcrepo.kernel.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.identifiers.IdentifierConverter;
+import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
+import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
+import org.fcrepo.kernel.services.NodeService;
+
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.attr.AnyURIAttribute;
+import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
+import org.jboss.security.xacml.sunxacml.attr.BagAttribute;
+import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
+import org.jboss.security.xacml.sunxacml.ctx.Status;
+import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Resource;
+
+/**
+ * Finds resource attributes based on triples in the Fedora graph. Retrieves values where the attribute URI matches the
+ * triple predicate and the triple object can be supplied as the requested data type.
+ *
+ * @author Gregory Jansen
+ * @author Andrew Woods
+ * @author Scott Prater
+ */
+@Component(&quot;tripleAttributeFinderModule&quot;)
+<span class="fc" id="L65">public class TripleAttributeFinderModule extends AttributeFinderModule {</span>
+
+<span class="fc" id="L67">    private static final Logger LOGGER = getLogger(TripleAttributeFinderModule.class);</span>
+
+    private static BagAttribute empty_bag;
+
+    private static IdentifierConverter&lt;Resource, FedoraResource&gt; idTranslator;
+
+    /**
+     * Fedora's ModeShape session factory.
+     */
+    @Autowired
+    protected SessionFactory sessionFactory;
+
+    @Autowired
+    protected NodeService nodeService;
+
+    /**
+     * Supported designator types.
+     */
+<span class="fc" id="L85">    private static final Set&lt;Integer&gt; DESIGNATOR_TYPES = unmodifiableSet(singleton(RESOURCE_TARGET));</span>
+
+    /**
+     * Supports designators.
+     *
+     * @return if designator is supported.
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#isDesignatorSupported()
+     */
+    @Override
+    public final boolean isDesignatorSupported() {
+<span class="fc" id="L95">        return true;</span>
+    }
+
+    /**
+     * Supports resource attributes.
+     *
+     * @return the supported designator types.
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#getSupportedDesignatorTypes()
+     */
+    @Override
+    public final Set&lt;Integer&gt; getSupportedDesignatorTypes() {
+<span class="fc" id="L106">        return DESIGNATOR_TYPES;</span>
+    }
+
+    /**
+     * Finds the matching triples values.
+     *
+     * @param attributeId The URI of the attribute key (the predicate of the triple)
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute (java.net.URI, java.net.URI,
+     *      java.net.URI, java.net.URI, org.jboss.security.xacml.sunxacml.EvaluationCtx, int)
+     */
+    @Override
+    public final EvaluationResult findAttribute(final URI attributeType,
+                                                final URI attributeId,
+                                                final URI issuer,
+                                                final URI subjectCategory,
+                                                final EvaluationCtx context,
+                                                final int designatorType) {
+<span class="fc" id="L123">        LOGGER.debug(&quot;findAttribute({}, {}, {}, {}, {}, {})&quot;,</span>
+                     attributeType, attributeId, issuer, subjectCategory, context, designatorType);
+
+<span class="fc" id="L126">        empty_bag = createEmptyBag(attributeType);</span>
+
+        // Make sure this is a Resource attribute
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">        if (designatorType != RESOURCE_TARGET) {</span>
+<span class="nc" id="L130">            LOGGER.debug(&quot;Not looking for a resource attribute&quot;);</span>
+<span class="nc" id="L131">            return new EvaluationResult(empty_bag);</span>
+        }
+
+        final Session session;
+        try {
+<span class="fc" id="L136">            session = sessionFactory.getInternalSession();</span>
+<span class="nc" id="L137">        } catch (final RepositoryRuntimeException e) {</span>
+<span class="nc" id="L138">            LOGGER.debug(&quot;Error getting session!&quot;);</span>
+<span class="nc" id="L139">            final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), &quot;Error getting session&quot;);</span>
+<span class="nc" id="L140">            return new EvaluationResult(status);</span>
+<span class="fc" id="L141">        }</span>
+
+        // The resourceId is the path of the object be acted on, retrieved from the PDP evaluation context
+<span class="fc" id="L144">        final EvaluationResult ridEvalRes =</span>
+                context.getResourceAttribute(URI.create(&quot;http://www.w3.org/2001/XMLSchema#string&quot;),
+                        URIConstants.ATTRIBUTEID_RESOURCE_ID, null);
+<span class="fc" id="L147">        final AttributeValue resourceIdAttValue = ridEvalRes.getAttributeValue();</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (resourceIdAttValue.getValue().toString().isEmpty()) {</span>
+<span class="nc" id="L149">            LOGGER.debug(&quot;Context should have a resource-id attribute!&quot;);</span>
+<span class="nc" id="L150">            final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), &quot;Resource Id not found!&quot;);</span>
+<span class="nc" id="L151">            return new EvaluationResult(status);</span>
+        }
+
+<span class="fc" id="L154">        String resourceId = (String) resourceIdAttValue.getValue();</span>
+
+        // if dealing with set_property action, use parent node for triples
+<span class="fc" id="L157">        final Set&lt;String&gt; actions = PolicyUtil.getActions(context);</span>
+<span class="fc bfc" id="L158" title="All 4 branches covered.">        if (actions.contains(&quot;set_property&quot;) || actions.contains(&quot;add_node&quot;)) {</span>
+<span class="fc" id="L159">            final int index = resourceId.lastIndexOf(&quot;/{&quot;);</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">            if (index &gt; -1) {</span>
+<span class="fc" id="L161">                resourceId = resourceId.substring(0, index);</span>
+            }
+
+<span class="fc bfc" id="L164" title="All 2 branches covered.">            if (resourceId.isEmpty()) {</span>
+<span class="fc" id="L165">                resourceId = &quot;/&quot;;</span>
+            }
+        }
+
+        // Get the resource to be acted on
+        final FedoraResource resource;
+        final String path;
+        try {
+<span class="fc" id="L173">            resource = nodeService.find(session, resourceId);</span>
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">            if (resource == null) {</span>
+<span class="nc" id="L175">                LOGGER.debug(&quot;Cannot find a fedora resource for {}&quot;, resourceId);</span>
+<span class="nc" id="L176">                return new EvaluationResult(empty_bag);</span>
+            }
+<span class="fc" id="L178">            path = resource.getPath();</span>
+<span class="fc" id="L179">            idTranslator = new DefaultIdentifierTranslator(session);</span>
+
+<span class="fc" id="L181">        } catch (final RepositoryRuntimeException e) {</span>
+            // If the object does not exist, it may be due to the action being &quot;create&quot;
+<span class="fc" id="L183">            return new EvaluationResult(empty_bag);</span>
+<span class="fc" id="L184">        }</span>
+
+<span class="fc" id="L186">        LOGGER.debug(&quot;Looking for properties on modeshape path {} with repo path {}&quot;, resourceId, path);</span>
+
+        // Get the properties of the resource
+        Model properties;
+        try {
+<span class="fc" id="L191">            properties = resource.getTriples(idTranslator, PropertiesRdfContext.class).asModel();</span>
+
+<span class="nc" id="L193">        } catch (final RepositoryRuntimeException e) {</span>
+<span class="nc" id="L194">            LOGGER.debug(&quot;Cannot retrieve any properties for [{}]:  {}&quot;, resourceId, e);</span>
+<span class="nc" id="L195">            final Status status =</span>
+                    new Status(singletonList(STATUS_PROCESSING_ERROR),
+                               &quot;Error retrieving properties for [&quot; + path + &quot;]!&quot;);
+<span class="nc" id="L198">            return new EvaluationResult(status);</span>
+<span class="fc" id="L199">        }</span>
+
+<span class="fc" id="L201">        final Resource graphNode = idTranslator.reverse().convert(resource);</span>
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">        if (null == graphNode) {</span>
+<span class="nc" id="L203">            LOGGER.debug(&quot;Cannot get subject for[{}]&quot;, resource.getPath());</span>
+<span class="nc" id="L204">            final Status status =</span>
+                    new Status(singletonList(STATUS_PROCESSING_ERROR),
+                            &quot;Error retrieving properties for [&quot; + path + &quot;]!&quot;);
+<span class="nc" id="L207">            return new EvaluationResult(status);</span>
+        }
+
+<span class="fc" id="L210">        LOGGER.debug(&quot;Looking for properties on graph node: {}&quot;, graphNode.getURI());</span>
+
+        // Get the values of the properties matching the type
+<span class="fc" id="L213">        final Iterator&lt;RDFNode&gt; matches =</span>
+                properties.listObjectsOfProperty(graphNode, properties.createProperty(attributeId.toString()));
+
+<span class="fc" id="L216">        final Set&lt;AttributeValue&gt; attr_bag = new HashSet&lt;&gt;();</span>
+
+        // Add the properties to the bag
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">        while (matches.hasNext()) {</span>
+<span class="nc" id="L220">            final RDFNode match = matches.next();</span>
+<span class="nc" id="L221">            final String uri = match.asResource().getURI();</span>
+<span class="nc" id="L222">            LOGGER.debug(&quot;Found property: {}&quot;, uri);</span>
+<span class="nc" id="L223">            attr_bag.add(new AnyURIAttribute(URI.create(uri)));</span>
+<span class="nc" id="L224">        }</span>
+
+        // Return the results, or any empty bag
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        if (attr_bag.isEmpty()) {</span>
+<span class="fc" id="L228">            LOGGER.debug(&quot;No matching properties found&quot;);</span>
+<span class="fc" id="L229">            return new EvaluationResult(empty_bag);</span>
+        }
+
+<span class="nc" id="L232">        return new EvaluationResult(new BagAttribute(attributeType, attr_bag));</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span></div></body></html>

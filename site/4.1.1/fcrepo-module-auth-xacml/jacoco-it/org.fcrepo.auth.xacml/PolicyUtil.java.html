@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>PolicyUtil.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fedora Repository XACML Authorization Module</a> &gt; <a href="index.source.html" class="el_package">org.fcrepo.auth.xacml</a> &gt; <span class="el_source">PolicyUtil.java</span></div><h1>PolicyUtil.java</h1><pre class="source lang-java linenums">/**
+ * Copyright 2015 DuraSpace, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import java.io.InputStream;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
+import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+/**
+ * @author Gregory Jansen
+ *
+ */
+public class PolicyUtil {
+
+<span class="fc" id="L44">    private static final Logger LOGGER = LoggerFactory.getLogger(PolicyUtil.class);</span>
+
+<span class="nc" id="L46">    private PolicyUtil() {</span>
+        //not called
+<span class="nc" id="L48">    }</span>
+
+    /**
+     * Extract a policy set or policy ID for the document.
+     *
+     * @param policyStream the policy input
+     * @return an identifier
+     */
+    public static String getID(final InputStream policyStream) {
+        try {
+            // create the factory
+<span class="fc" id="L59">            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();</span>
+<span class="fc" id="L60">            factory.setIgnoringComments(true);</span>
+
+<span class="fc" id="L62">            factory.setNamespaceAware(true);</span>
+<span class="fc" id="L63">            factory.setValidating(false);</span>
+<span class="fc" id="L64">            final DocumentBuilder db = factory.newDocumentBuilder();</span>
+
+            // Parse the policy content
+<span class="fc" id="L67">            final Document doc = db.parse(policyStream);</span>
+
+<span class="fc" id="L69">            final String result = getID(doc);</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">            if (result == null) {</span>
+<span class="nc" id="L71">                throw new Error(&quot;Cannot find policy ID&quot;);</span>
+            }
+<span class="fc" id="L73">            return result;</span>
+<span class="nc" id="L74">        } catch (final Exception e) {</span>
+<span class="nc" id="L75">            throw new Error(&quot;Unable to parse policy&quot;, e);</span>
+        }
+    }
+
+    /**
+     * Get the ID of the XACML policy document.
+     *
+     * @param doc the DOM
+     * @return the ID
+     */
+    public static String getID(final Document doc) {
+        // handle the policy, if it's a known type
+<span class="fc" id="L87">        final Element root = doc.getDocumentElement();</span>
+<span class="fc" id="L88">        final String name = root.getTagName();</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">        if (name.equals(&quot;Policy&quot;)) {</span>
+<span class="nc" id="L90">            return root.getAttribute(&quot;PolicyId&quot;);</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        } else if (name.equals(&quot;PolicySet&quot;)) {</span>
+<span class="fc" id="L92">            return root.getAttribute(&quot;PolicySetId&quot;);</span>
+        } else {
+<span class="nc" id="L94">            return null;</span>
+        }
+    }
+
+    /**
+     * Gets the repository path for a policy ID.
+     *
+     * @param id the policy id
+     * @return the repository path
+     */
+    public static String getPathForId(final String id) {
+<span class="fc" id="L105">        return id.substring(URIConstants.POLICY_URI_PREFIX.length());</span>
+    }
+
+    /**
+     * Find the nearest real Modeshape node for a given Modeshape path.
+     *
+     * @param modepath the path in ModeShape
+     * @param session a session
+     * @return a Node in session
+     */
+    public static Node getFirstRealNode(final String modepath, final Session session) {
+<span class="fc" id="L116">        LOGGER.debug(&quot;Finding firstRealNode for path: {}&quot;, modepath);</span>
+
+<span class="fc" id="L118">        Node node = null;</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        for (String path = modepath; path.contains(&quot;/{&quot;); path = path.substring(0, path.lastIndexOf(&quot;/{&quot;))) {</span>
+            try {
+<span class="fc" id="L121">                node = session.getNode(path);</span>
+<span class="fc" id="L122">                break;</span>
+<span class="fc" id="L123">            } catch (final PathNotFoundException expected) {</span>
+<span class="nc" id="L124">            } catch (final RepositoryException e) {</span>
+<span class="nc" id="L125">                throw new Error(&quot;Cannot reach repository&quot;, e);</span>
+<span class="fc" id="L126">            }</span>
+        }
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        if (node == null) {</span>
+            try {
+<span class="fc" id="L130">                node = session.getRootNode();</span>
+<span class="nc" id="L131">            } catch (final RepositoryException e) {</span>
+<span class="nc" id="L132">                throw new Error(&quot;Cannot reach repository&quot;, e);</span>
+<span class="fc" id="L133">            }</span>
+        }
+
+<span class="fc" id="L136">        LOGGER.debug(&quot;Found firstRealNode for path: {}&quot;, modepath);</span>
+<span class="fc" id="L137">        return node;</span>
+    }
+
+    /**
+     * Get the action ids.
+     *
+     * @param context the evaluation context
+     * @return a set of actions
+     */
+    public static Set&lt;String&gt; getActions(final EvaluationCtx context) {
+<span class="fc" id="L147">        final Set&lt;String&gt; result = new HashSet&lt;String&gt;();</span>
+<span class="fc" id="L148">        final EvaluationResult eval =</span>
+                context.getActionAttribute(URI.create(&quot;http://www.w3.org/2001/XMLSchema#string&quot;),
+                        URIConstants.ATTRIBUTEID_ACTION_ID, null);
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">        if (eval == null) {</span>
+<span class="nc" id="L152">            return null;</span>
+        }
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">        if (eval.getStatus() == null) {</span>
+<span class="fc" id="L155">            final AttributeValue val = eval.getAttributeValue();</span>
+<span class="pc bpc" id="L156" title="2 of 4 branches missed.">            if (val != null &amp;&amp; val.getValue() != null) {</span>
+<span class="fc" id="L157">                result.add(val.getValue().toString());</span>
+            }
+        }
+<span class="fc" id="L160">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span></div></body></html>

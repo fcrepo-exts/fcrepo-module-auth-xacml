@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SparqlResourceAttributeFinderModule.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fedora Repository XACML Authorization Module</a> &gt; <a href="index.source.html" class="el_package">org.fcrepo.auth.xacml</a> &gt; <span class="el_source">SparqlResourceAttributeFinderModule.java</span></div><h1>SparqlResourceAttributeFinderModule.java</h1><pre class="source lang-java linenums">/**
+ * Copyright 2015 DuraSpace, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import java.net.URI;
+import java.util.Collections;
+import java.util.Set;
+
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.attr.AttributeDesignator;
+import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
+import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
+import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
+
+
+/**
+ * Finds resource attributes via a configured set of SPARQL queries.
+ * @author Gregory Jansen
+ */
+@Component
+<span class="fc" id="L35">public class SparqlResourceAttributeFinderModule extends AttributeFinderModule {</span>
+
+    /**
+     * Supported designator types.
+     */
+<span class="fc" id="L40">    private static final Set&lt;Integer&gt; DESIGNATOR_TYPES = Collections</span>
+            .unmodifiableSet(Collections
+                    .singleton(AttributeDesignator.RESOURCE_TARGET));
+
+    /*
+     * (non-Javadoc)
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
+     * isDesignatorSupported()
+     */
+    @Override
+    public final boolean isDesignatorSupported() {
+<span class="fc" id="L51">        return true;</span>
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
+     * isSelectorSupported()
+     */
+    @Override
+    public final boolean isSelectorSupported() {
+<span class="fc" id="L61">        return true;</span>
+    }
+
+    /*
+     * Supports resource designator types.
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
+     * getSupportedDesignatorTypes()
+     */
+    @Override
+    public final Set&lt;Integer&gt; getSupportedDesignatorTypes() {
+<span class="fc" id="L71">        return SparqlResourceAttributeFinderModule.DESIGNATOR_TYPES;</span>
+    }
+
+    /*
+     * The list of attribute IDs which are mapped to SPARQL queries.
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
+     * getSupportedIds()
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    @Override
+    public final Set&lt;URI&gt; getSupportedIds() {
+        // TODO Auto-generated method stub
+<span class="nc" id="L83">        return super.getSupportedIds();</span>
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute
+     * (java.net.URI, java.net.URI, java.net.URI, java.net.URI,
+     * org.jboss.security.xacml.sunxacml.EvaluationCtx, int)
+     */
+    @Override
+    public final EvaluationResult findAttribute(final URI attributeType,
+            final URI attributeId, final URI issuer, final URI subjectCategory,
+            final EvaluationCtx context, final int designatorType) {
+        // TODO Auto-generated method stub
+<span class="fc" id="L98">        return super.findAttribute(attributeType, attributeId, issuer,</span>
+                subjectCategory, context, designatorType);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute
+     * (java.lang.String, org.w3c.dom.Node, java.net.URI,
+     * org.jboss.security.xacml.sunxacml.EvaluationCtx, java.lang.String)
+     */
+    @Override
+    public final EvaluationResult findAttribute(final String contextPath,
+            final Node namespaceNode, final URI attributeType,
+            final EvaluationCtx context, final String xpathVersion) {
+        // TODO Auto-generated method stub
+<span class="nc" id="L114">        return super.findAttribute(contextPath, namespaceNode, attributeType,</span>
+                context, xpathVersion);
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span></div></body></html>
