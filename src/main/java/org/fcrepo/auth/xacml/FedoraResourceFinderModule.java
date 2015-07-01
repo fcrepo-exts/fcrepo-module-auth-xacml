@@ -27,6 +27,7 @@ import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+
 import org.fcrepo.http.commons.session.SessionFactory;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
@@ -109,11 +110,11 @@ public class FedoraResourceFinderModule extends ResourceFinderModule {
         try {
             final Session session = sessionFactory.getInternalSession();
             final Node node = session.getNode( parent.getValue().toString() );
-            final Set<String> children = new HashSet<String>();
+            final Set<String> children = new HashSet<>();
             findChildren( node, children, recurse );
             return new ResourceFinderResult( children );
-        } catch ( RepositoryException ex ) {
-            final HashMap errors = new HashMap();
+        } catch ( final RepositoryException ex ) {
+            final HashMap<AttributeValue, String> errors = new HashMap<>();
             errors.put( parent, STATUS_PROCESSING_ERROR );
             return new ResourceFinderResult( errors );
         }
@@ -129,7 +130,7 @@ public class FedoraResourceFinderModule extends ResourceFinderModule {
         throws RepositoryException {
         for ( final NodeIterator nodes = node.getNodes(); nodes.hasNext(); ) {
             final Node child = nodes.nextNode();
-            if ( !isInternalNode.apply(child) && !child.getName().equals(JCR_CONTENT) ) {
+            if ( !isInternalNode.test(child) && !child.getName().equals(JCR_CONTENT) ) {
 
                 children.add( child.getPath() );
 

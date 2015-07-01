@@ -23,44 +23,31 @@ import org.jboss.security.xacml.interfaces.XMLSchemaConstants;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.modeshape.jcr.api.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Test the behavior of the XACML eval context builder.
  *
  * @author Gregory Jansen
  */
+@RunWith(MockitoJUnitRunner.class)
 public class FedoraEvaluationCtxBuilderTest {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(FedoraEvaluationCtxBuilderTest.class);
 
     @Mock
     private Session session;
 
     /**
-     * Setup the test case.
-     */
-    @Before
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-    }
-
-    /**
      * Test a builder of evaluation context.
-     * 
-     * @throws Exception
      */
     @Test
-    public void test() throws Exception {
+    public void test() {
         // use builder to create context.
         final FedoraEvaluationCtxBuilder builder = new FedoraEvaluationCtxBuilder();
-        final Set<String> roles = new HashSet<String>();
+        final Set<String> roles = new HashSet<>();
         roles.add("reader");
         builder.addSubject("testuser", roles);
         builder.addResourceID("/testobject/testdatastream/myproperty1");
