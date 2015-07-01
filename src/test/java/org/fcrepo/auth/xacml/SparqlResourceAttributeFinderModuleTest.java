@@ -15,52 +15,12 @@
  */
 package org.fcrepo.auth.xacml;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 /**
+ * TODO write some actual tests
+ *
  * @author Andrew Woods
  *         Date: 5/9/14
  */
 public class SparqlResourceAttributeFinderModuleTest {
-    @Before
-    public void setUp() throws Exception {
 
-    }
-
-    @After
-    public void tearDown() throws Exception {
-
-    }
-
-    @Test
-    public void testIsDesignatorSupported() throws Exception {
-
-    }
-
-    @Test
-    public void testIsSelectorSupported() throws Exception {
-
-    }
-
-    @Test
-    public void testGetSupportedDesignatorTypes() throws Exception {
-
-    }
-
-    @Test
-    public void testGetSupportedIds() throws Exception {
-
-    }
-
-    @Test
-    public void testFindAttribute() throws Exception {
-
-    }
-
-    @Test
-    public void testFindAttribute1() throws Exception {
-
-    }
 }

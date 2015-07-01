@@ -76,7 +76,6 @@ public class SparqlResourceAttributeFinderModule extends AttributeFinderModule {
      * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
      * getSupportedIds()
      */
-    @SuppressWarnings("unchecked")
     @Override
     public final Set<URI> getSupportedIds() {
         // TODO Auto-generated method stub

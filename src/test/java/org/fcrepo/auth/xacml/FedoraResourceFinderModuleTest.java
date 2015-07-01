@@ -21,7 +21,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -30,6 +29,7 @@ import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.nodetype.NodeType;
 
@@ -59,7 +59,7 @@ public class FedoraResourceFinderModuleTest {
     @Mock NodeIterator mockGrandchildIterator;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws RepositoryException {
         initMocks(this);
         resourceFinder = new FedoraResourceFinderModule();
         resourceFinder.sessionFactory = mockSessionFactory;
@@ -89,33 +89,28 @@ public class FedoraResourceFinderModuleTest {
 
     }
 
-    @After
-    public void tearDown() throws Exception {
-
-    }
-
     @Test
-    public void testIsChildSupported() throws Exception {
+    public void testIsChildSupported() {
         assertTrue( resourceFinder.isChildSupported() );
     }
 
     @Test
-    public void testIsDescendantSupported() throws Exception {
+    public void testIsDescendantSupported() {
         assertTrue( resourceFinder.isDescendantSupported() );
     }
 
     @Test
-    public void testFindChildResources() throws Exception {
+    public void testFindChildResources() {
         final ResourceFinderResult result = resourceFinder.findChildResources( mockParent, null );
-        final Set resources = result.getResources();
+        final Set<?> resources = result.getResources();
         assertTrue( "Child not found", resources.contains("/foo/bar") );
         assertFalse( "Grandchild should not be found", resources.contains("/foo/bar/baz") );
     }
 
     @Test
-    public void testFindDescendantResources() throws Exception {
+    public void testFindDescendantResources() {
         final ResourceFinderResult result = resourceFinder.findDescendantResources( mockParent, null );
-        final Set resources = result.getResources();
+        final Set<?> resources = result.getResources();
         assertTrue( "Child not found", resources.contains("/foo/bar") );
         assertTrue( "Grandchild not found", resources.contains("/foo/bar/baz") );
     }

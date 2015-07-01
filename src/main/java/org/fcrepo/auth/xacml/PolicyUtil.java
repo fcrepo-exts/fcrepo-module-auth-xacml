@@ -144,7 +144,7 @@ public class PolicyUtil {
      * @return a set of actions
      */
     public static Set<String> getActions(final EvaluationCtx context) {
-        final Set<String> result = new HashSet<String>();
+        final Set<String> result = new HashSet<>();
         final EvaluationResult eval =
                 context.getActionAttribute(URI.create("http://www.w3.org/2001/XMLSchema#string"),
                         URIConstants.ATTRIBUTEID_ACTION_ID, null);

@@ -19,7 +19,6 @@ import java.io.File;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 
@@ -28,13 +27,6 @@ import org.junit.Test;
  *
  */
 public class PolicyUtilTest {
-
-    /**
-     * @throws java.lang.Exception
-     */
-    @Before
-    public void setUp() throws Exception {
-    }
 
     @Test
     public void test() throws Exception {

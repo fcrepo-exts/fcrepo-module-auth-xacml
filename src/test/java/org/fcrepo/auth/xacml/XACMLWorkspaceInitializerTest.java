@@ -45,7 +45,7 @@ import org.mockito.Mock;
  * <p>
  * XACMLWorkspaceInitializerTest class.
  * </p>
- * 
+ *
  * @author mohideen
  */
 public class XACMLWorkspaceInitializerTest {
@@ -130,7 +130,7 @@ public class XACMLWorkspaceInitializerTest {
     }
 
     @Test(expected = RepositoryRuntimeException.class)
-    public void testInitInitialPoliciesException() throws Exception {
+    public void testInitInitialPoliciesException() {
         when(mockSessionFactory.getInternalSession()).thenThrow(new RepositoryRuntimeException("expected"));
 
         xacmlWI.init();

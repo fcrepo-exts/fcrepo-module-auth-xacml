@@ -21,14 +21,11 @@ import java.security.Principal;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
-import javax.jcr.RepositoryException;
+import javax.inject.Inject;
 import javax.jcr.Session;
 import javax.servlet.http.HttpServletRequest;
 
 import org.fcrepo.auth.roles.common.AbstractRolesAuthorizationDelegate;
-import org.fcrepo.auth.roles.common.AccessRolesProvider;
-import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.services.NodeService;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.PDP;
 import org.jboss.security.xacml.sunxacml.ctx.ResponseCtx;
@@ -36,7 +33,6 @@ import org.jboss.security.xacml.sunxacml.ctx.Result;
 import org.jboss.security.xacml.sunxacml.finder.impl.CurrentEnvModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,17 +49,7 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(XACMLAuthorizationDelegate.class);
 
-    /**
-     * The name of Fedora's subject finder module bean. (prototype)
-     */
-    private static final String SUBJECT_ATTRIBUTE_FINDER_BEAN = "subjectAttributeFinderModule";
-
-    /**
-     * The name of Fedora's environment finder module bean. (prototype)
-     */
-    private static final String ENVIRONMENT_ATTRIBUTE_FINDER_BEAN = "environmentAttributeFinderModule";
-
-    @Autowired
+    @Inject
     private PDPFactory pdpFactory;
 
     /**
@@ -74,43 +60,27 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
     /**
      * The standard environment attribute finder, supplies date/time.
      */
-    private CurrentEnvModule currentEnvironmentAttributeModule = new CurrentEnvModule();
+    private final CurrentEnvModule currentEnvironmentAttributeModule = new CurrentEnvModule();
 
     /**
      * The triple-based resource attribute finder module.
      */
-    @Autowired
+    @Inject
     private TripleAttributeFinderModule tripleResourceAttributeFinderModule;
 
     /**
      * The SPARQL-based resource attribute finder module.
      */
-    @Autowired
+    @Inject
     private SparqlResourceAttributeFinderModule sparqlResourceAttributeFinderModule;
-
-    /**
-     * The provider for access roles.
-     */
-    @Autowired
-    private AccessRolesProvider accessRolesProvider;
-
-    /**
-     * Fedora's ModeShape session factory.
-     */
-    @Autowired
-    private SessionFactory sessionFactory;
-
-    @Autowired
-    private NodeService nodeService;
 
     /**
      * Configures the delegate.
      *
      * @throws IOException if IO exception occurred
-     * @throws RepositoryException if repository exception occurred
      */
     @PostConstruct
-    public final void init() throws RepositoryException, IOException {
+    public final void init() {
         pdp = pdpFactory.makePDP();
         if (pdp == null) {
             throw new Error("There is no PDP wired by the factory in the Spring context.");
@@ -209,6 +179,7 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         builder.addOriginalRequestIP(request.getRemoteAddr());
 
         // add user's groups
+        @SuppressWarnings("unchecked")
         final Set<Principal> allGroups = (Set<Principal>) session.getAttribute(FEDORA_ALL_PRINCIPALS);
         LOGGER.debug("effective groups: {}", allGroups);
         builder.addGroups(user, allGroups);

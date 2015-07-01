@@ -31,7 +31,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import java.net.URI;
 import java.util.Set;
 
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
@@ -47,7 +46,6 @@ import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
 import org.jboss.security.xacml.sunxacml.attr.BagAttribute;
 import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
 import org.jboss.security.xacml.sunxacml.ctx.Status;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -80,7 +78,7 @@ public class TripleAttributeFinderModuleTest {
     private FedoraResource mockFedoraResource;
 
     @Mock
-    private IdentifierConverter mockIdentifierTranslator;
+    private IdentifierConverter<Object, Object> mockIdentifierTranslator;
 
     @Mock
     private Model mockModel;
@@ -99,7 +97,7 @@ public class TripleAttributeFinderModuleTest {
 
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         initMocks(this);
 
         finder = new TripleAttributeFinderModule();
@@ -109,23 +107,18 @@ public class TripleAttributeFinderModuleTest {
         when(mockSessionFactory.getInternalSession()).thenReturn(mockSession);
     }
 
-    @After
-    public void tearDown() throws Exception {
-
-    }
-
     @Test
-    public void testIsDesignatorSupported() throws Exception {
+    public void testIsDesignatorSupported() {
         assertTrue("Designator should be supported!", finder.isDesignatorSupported());
     }
 
     @Test
-    public void testIsSelectorSupported() throws Exception {
+    public void testIsSelectorSupported() {
         assertFalse("Selector should not be supported!", finder.isSelectorSupported());
     }
 
     @Test
-    public void testGetSupportedDesignatorTypes() throws Exception {
+    public void testGetSupportedDesignatorTypes() {
         final Set<Integer> designatorTypes = finder.getSupportedDesignatorTypes();
         assertNotNull("Designator Types should not be null!", designatorTypes);
 
@@ -134,12 +127,12 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testGetSupportedIds() throws Exception {
+    public void testGetSupportedIds() {
         assertNull("All IDs supported, should be null!", finder.getSupportedIds());
     }
 
     @Test
-    public void testFindAttributeSelector() throws Exception {
+    public void testFindAttributeSelector() {
         final String contextPath = "contextPath";
         final org.w3c.dom.Node namespaceNode = null;
         final URI attributeType = URI.create("uri:att-type");
@@ -155,12 +148,12 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeWrongDesignator() throws Exception {
+    public void testFindAttributeWrongDesignator() {
         assertIsEmptyResult(doFindAttribute(SUBJECT_TARGET, "/{ns}path/{ns}to/{ns}resource", null));
     }
 
     @Test
-    public void testFindAttribute() throws RepositoryException {
+    public void testFindAttribute() {
 
         final String resourceId = "/{ns}path/{ns}to/{ns}resource";
 
@@ -200,7 +193,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeInvalidSession() throws RepositoryException {
+    public void testFindAttributeInvalidSession() {
         when(mockSessionFactory.getInternalSession()).thenThrow(new RepositoryRuntimeException("expected"));
         final EvaluationResult result = doFindAttribute("/{ns}path/{ns}to/{ns}resource");
         final String status = (String) result.getStatus().getCode().get(0);
@@ -209,7 +202,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeEmptyResourceId() throws RepositoryException {
+    public void testFindAttributeEmptyResourceId() {
         final String resourceId = "";
 
         when(mockNodeService.find(mockSession, resourceId)).thenReturn(null);
@@ -221,7 +214,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeNullResource() throws RepositoryException {
+    public void testFindAttributeNullResource() {
         final String resourceId = "/{ns}no/{ns}such/{ns}path";
         final String[] actions = { "read" };
 
@@ -234,7 +227,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeNewResourceId() throws RepositoryException {
+    public void testFindAttributeNewResourceId() {
         final String resourceId = "/{ns}no/{ns}such{ns}/path";
         final String[] actions = { "read" };
 
@@ -248,7 +241,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeSetProperty() throws RepositoryException {
+    public void testFindAttributeSetProperty() {
         final String resourceId = "/{ns}path/{ns}to/{ns}node/{ns}property";
         final String[] actions = { "set_property" };
 
@@ -260,7 +253,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeAddNode() throws RepositoryException {
+    public void testFindAttributeAddNode() {
         final String resourceId = "/{ns}path/{ns}to/{ns}node/{ns}child";
         final String[] actions = { "add_node" };
 
@@ -272,7 +265,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeSetRootNodeProperty() throws RepositoryException {
+    public void testFindAttributeSetRootNodeProperty() {
         final String resourceId = "/{ns}property";
         final String[] actions = { "set_property" };
 
@@ -284,7 +277,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeAddRootChildNode() throws RepositoryException {
+    public void testFindAttributeAddRootChildNode() {
         final String resourceId = "/{ns}child";
         final String[] actions = { "add_node" };
 
@@ -296,7 +289,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeBadProperties() throws RepositoryException {
+    public void testFindAttributeBadProperties() {
         final String resourceId = "/{ns}no/{ns}such/{ns}path";
         final String[] actions = { "read" };
 
@@ -311,7 +304,7 @@ public class TripleAttributeFinderModuleTest {
     }
 
     @Test
-    public void testFindAttributeNoAttr() throws RepositoryException {
+    public void testFindAttributeNoAttr() {
         final String resourceId = "/{ns}no/{ns}such/{ns}path";
 
         when(mockMatches.hasNext()).thenReturn(false);
@@ -324,7 +317,7 @@ public class TripleAttributeFinderModuleTest {
 
     // Helper methods
 
-    private void assertIsEmptyResult(final EvaluationResult result) {
+    private static void assertIsEmptyResult(final EvaluationResult result) {
         final BagAttribute attributeValue = (BagAttribute) result.getAttributeValue();
         assertNotNull("Evaluation.attributeValue shoud not be null!", attributeValue);
         assertTrue("Evaluation.attributeValue should be a bag!", attributeValue.isBag());
@@ -362,7 +355,7 @@ public class TripleAttributeFinderModuleTest {
         return result;
     }
 
-    private EvaluationCtx evaluationCtx(final String resourceId, final String[] actions) {
+    private static EvaluationCtx evaluationCtx(final String resourceId, final String[] actions) {
         final FedoraEvaluationCtxBuilder builder = new FedoraEvaluationCtxBuilder();
         if (resourceId != null) {
             builder.addResourceID(resourceId);

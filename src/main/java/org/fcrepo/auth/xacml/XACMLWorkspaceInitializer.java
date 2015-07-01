@@ -61,9 +61,9 @@ public class XACMLWorkspaceInitializer {
     @Autowired
     private BinaryService binaryService;
 
-    private File initialPoliciesDirectory;
+    private final File initialPoliciesDirectory;
 
-    private File initialRootPolicyFile;
+    private final File initialRootPolicyFile;
 
     /**
      * Constructor
@@ -157,12 +157,9 @@ public class XACMLWorkspaceInitializer {
                 final String id = PolicyUtil.getID(FileUtils.openInputStream(p));
                 final String repoPath = PolicyUtil.getPathForId(id);
                 final FedoraBinary binary = binaryService.findOrCreate(session, repoPath);
-                binary.setContent(new FileInputStream(p),
-                                  "application/xml",
-                                  null,
-                                  p.getName(),
-                                  null);
-
+                try (FileInputStream stream = new FileInputStream(p)) {
+                    binary.setContent(stream, "application/xml", null, p.getName(), null);
+                }
                 LOGGER.info("Add initial policy {} at {}", p.getAbsolutePath(), binary.getPath());
             }
             session.save();
