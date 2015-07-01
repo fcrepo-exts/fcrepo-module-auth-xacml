@@ -33,7 +33,6 @@ import java.util.Set;
 import org.jboss.security.xacml.sunxacml.BasicEvaluationCtx;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.ParsingException;
-import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
 import org.jboss.security.xacml.sunxacml.attr.StringAttribute;
 import org.jboss.security.xacml.sunxacml.ctx.Attribute;
 import org.jboss.security.xacml.sunxacml.ctx.RequestCtx;
@@ -58,32 +57,27 @@ public class FedoraEvaluationCtxBuilder {
     /**
      * The list of other subjects.
      */
-    private final List<Subject> subjectList = new ArrayList<Subject>();
+    private final List<Subject> subjectList = new ArrayList<>();
 
     /**
      * This list of resource attributes.
      */
-    private final List<Attribute> resourceList = new ArrayList<Attribute>();
-
-    /**
-     * The ID of the resource.
-     */
-    private AttributeValue resourceId;
+    private final List<Attribute> resourceList = new ArrayList<>();
 
     /**
      * This list of action attributes.
      */
-    private final List<Attribute> actionList = new ArrayList<Attribute>();
+    private final List<Attribute> actionList = new ArrayList<>();
 
     /**
      * This list of environment attributes.
      */
-    private final List<Attribute> environmentList = new ArrayList<Attribute>();
+    private final List<Attribute> environmentList = new ArrayList<>();
 
     /**
      * The list of attribute finder modules.
      */
-    private final List<AttributeFinderModule> attributeFinderModules = new ArrayList<AttributeFinderModule>();
+    private final List<AttributeFinderModule> attributeFinderModules = new ArrayList<>();
 
     /**
      * Build the evaluation context.

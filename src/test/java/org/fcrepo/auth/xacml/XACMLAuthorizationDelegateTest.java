@@ -87,14 +87,14 @@ public class XACMLAuthorizationDelegateTest {
     private SparqlResourceAttributeFinderModule mockSparqlRAFM;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         initMocks(this);
         setField(mockPdpFactory, "fedoraPolicyFinderModule", mockFedoraPFM);
         setField(mockPdpFactory, "fedoraResourceFinderModule", mockFedoraRFM);
         when(mockPdpFactory.makePDP()).thenReturn(mockPdp);
         when(mockPdp.evaluate(any(EvaluationCtx.class))).thenReturn(mockResponseCtx);
         when(mockResponseCtx.getResults()).thenReturn(getFakeResultSet());
-        when(mockResult.getDecision()).thenReturn(mockResult.DECISION_PERMIT);
+        when(mockResult.getDecision()).thenReturn(Result.DECISION_PERMIT);
         when(mockSession.getAttribute(FEDORA_USER_PRINCIPAL)).thenReturn(mockUser);
         when(mockSession.getAttribute(FEDORA_SERVLET_REQUEST)).thenReturn(mockHttpServletRequest);
         when(mockSession.getWorkspace()).thenReturn(mockWorkspace);
@@ -105,28 +105,28 @@ public class XACMLAuthorizationDelegateTest {
         setField(xacmlAD, "sparqlResourceAttributeFinderModule", mockSparqlRAFM);
     }
 
-    private Set getFakeResultSet() {
-        final Set fakeResults = new HashSet();
+    private Set<Result> getFakeResultSet() {
+        final Set<Result> fakeResults = new HashSet<>();
         fakeResults.add(mockResult);
         return fakeResults;
     }
 
     @Test(expected = Error.class)
-    public void testInitPdpNull() throws Exception {
+    public void testInitPdpNull() {
         when(mockPdpFactory.makePDP()).thenReturn(null);
 
         xacmlAD.init();
     }
 
     @Test
-    public void testInit() throws Exception {
+    public void testInit() {
         xacmlAD.init();
 
         verify(mockPdpFactory).makePDP();
     }
 
     @Test
-    public void testRolesHavePermission() throws Exception {
+    public void testRolesHavePermission() {
         xacmlAD.init();
         xacmlAD.rolesHavePermission(mockSession, "/fake/path", getFakeActions(), getFakeRoles());
 
@@ -139,27 +139,27 @@ public class XACMLAuthorizationDelegateTest {
     }
 
     @Test
-    public void testRolesHavePermissionTrue() throws Exception {
+    public void testRolesHavePermissionTrue() {
         xacmlAD.init();
         assertTrue(xacmlAD.rolesHavePermission(mockSession, "/fake/path", getFakeActions(), getFakeRoles()));
     }
 
     @Test
-    public void testRolesHavePermissionFalse() throws Exception {
+    public void testRolesHavePermissionFalse() {
         xacmlAD.init();
-        when(mockResult.getDecision()).thenReturn(mockResult.DECISION_DENY);
+        when(mockResult.getDecision()).thenReturn(Result.DECISION_DENY);
         assertFalse(xacmlAD.rolesHavePermission(mockSession, "/fake/path", getFakeActions(), getFakeRoles()));
     }
 
-    private String[] getFakeActions() {
+    private static String[] getFakeActions() {
         final String[] fakeActions =  new String[2];
         fakeActions[0] = "fakeAction1";
         fakeActions[1] = "fakeAction2";
         return fakeActions;
     }
 
-    private Set getFakeRoles() {
-        final Set<String> fakeRoles = new HashSet();
+    private static Set<String> getFakeRoles() {
+        final Set<String> fakeRoles = new HashSet<>();
         fakeRoles.add("fakeRole1");
         fakeRoles.add("fakeRole2");
         return fakeRoles;

@@ -36,6 +36,7 @@ import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
@@ -44,6 +45,7 @@ import org.fcrepo.kernel.models.NonRdfSourceDescription;
 import org.fcrepo.kernel.models.FedoraBinary;
 import org.fcrepo.kernel.services.BinaryService;
 import org.fcrepo.kernel.services.NodeService;
+
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.PolicyReference;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -138,17 +140,17 @@ public class FedoraPolicyFinderModuleTest {
     }
 
     @Test
-    public void testIsRequestSupported() throws Exception {
+    public void testIsRequestSupported() {
         assertTrue(finderModule.isRequestSupported());
     }
 
     @Test
-    public void testIsIdReferenceSupported() throws Exception {
+    public void testIsIdReferenceSupported() {
         assertTrue(finderModule.isIdReferenceSupported());
     }
 
     @Test
-    public void testFindPolicyOnTargetNode() throws Exception {
+    public void testFindPolicyOnTargetNode() throws RepositoryException  {
 
         when(mockNode.hasProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(true);
         when(mockNode.getProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(mockPolicyProperty);
@@ -171,10 +173,10 @@ public class FedoraPolicyFinderModuleTest {
     }
 
     @Test
-    public void testFindPolicyByIdReference() throws Exception {
+    public void testFindPolicyByIdReference() {
         final String policyPath = "/path/to/policy";
         final String idPath = POLICY_URI_PREFIX + policyPath;
-        final URI idReference = new URI(idPath);
+        final URI idReference = URI.create(idPath);
 
         when(mockPolicyDs.getDescribedResource()).thenReturn(mockBinary);
         when(mockBinary.getContent()).thenReturn(this.getClass().getResourceAsStream("/xacml/testPolicy.xml"));
@@ -187,7 +189,7 @@ public class FedoraPolicyFinderModuleTest {
     }
 
     @Test
-    public void testFindPolicySet() throws Exception {
+    public void testFindPolicySet() throws RepositoryException {
 
         when(mockNode.hasProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(true);
         when(mockNode.getProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(mockPolicyProperty);
@@ -196,7 +198,6 @@ public class FedoraPolicyFinderModuleTest {
         when(mockBinary.getContent())
         .thenReturn(this.getClass().getResourceAsStream("/xacml/adminRolePolicySet.xml"));
 
-        final String referencedId = "fcrepo:policies/AdminPermissionPolicySet";
         final NonRdfSourceDescription referencedPolicyDs = mock(NonRdfSourceDescription.class);
         final FedoraBinary referencedPolicyBinary = mock(FedoraBinary.class);
         when(referencedPolicyDs.getDescribedResource()).thenReturn(referencedPolicyBinary);
