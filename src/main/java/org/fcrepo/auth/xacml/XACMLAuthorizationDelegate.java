@@ -76,8 +76,6 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
 
     /**
      * Configures the delegate.
-     *
-     * @throws IOException if IO exception occurred
      */
     @PostConstruct
     public final void init() {
