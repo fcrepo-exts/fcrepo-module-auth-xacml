@@ -29,12 +29,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.FedoraJcrTypes;
-import org.fcrepo.kernel.models.FedoraBinary;
-import org.fcrepo.kernel.models.FedoraResource;
-import org.fcrepo.kernel.exception.RepositoryRuntimeException;
-import org.fcrepo.kernel.services.BinaryService;
-import org.fcrepo.kernel.services.NodeService;
+import org.fcrepo.kernel.api.FedoraJcrTypes;
+import org.fcrepo.kernel.api.models.FedoraBinary;
+import org.fcrepo.kernel.api.models.FedoraResource;
+import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.api.services.BinaryService;
+import org.fcrepo.kernel.api.services.NodeService;
 import org.jboss.security.xacml.sunxacml.AbstractPolicy;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.MatchResult;

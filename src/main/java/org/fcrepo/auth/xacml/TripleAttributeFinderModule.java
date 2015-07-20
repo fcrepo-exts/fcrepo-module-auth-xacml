@@ -31,12 +31,12 @@ import java.util.Set;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.models.FedoraResource;
-import org.fcrepo.kernel.exception.RepositoryRuntimeException;
-import org.fcrepo.kernel.identifiers.IdentifierConverter;
-import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
-import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
-import org.fcrepo.kernel.services.NodeService;
+import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.api.identifiers.IdentifierConverter;
+import org.fcrepo.kernel.api.models.FedoraResource;
+import org.fcrepo.kernel.api.services.NodeService;
+import org.fcrepo.kernel.modeshape.rdf.impl.PropertiesRdfContext;
+import org.fcrepo.kernel.modeshape.rdf.impl.DefaultIdentifierTranslator;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AnyURIAttribute;
