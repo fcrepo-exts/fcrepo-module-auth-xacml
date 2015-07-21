@@ -40,11 +40,11 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.FedoraJcrTypes;
-import org.fcrepo.kernel.models.NonRdfSourceDescription;
-import org.fcrepo.kernel.models.FedoraBinary;
-import org.fcrepo.kernel.services.BinaryService;
-import org.fcrepo.kernel.services.NodeService;
+import org.fcrepo.kernel.api.FedoraJcrTypes;
+import org.fcrepo.kernel.api.models.NonRdfSourceDescription;
+import org.fcrepo.kernel.api.models.FedoraBinary;
+import org.fcrepo.kernel.api.services.BinaryService;
+import org.fcrepo.kernel.api.services.NodeService;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.PolicyReference;

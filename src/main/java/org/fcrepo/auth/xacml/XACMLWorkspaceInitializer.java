@@ -28,9 +28,9 @@ import javax.jcr.nodetype.NodeTypeIterator;
 import javax.jcr.nodetype.NodeTypeTemplate;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.exception.InvalidChecksumException;
-import org.fcrepo.kernel.models.FedoraBinary;
-import org.fcrepo.kernel.services.BinaryService;
+import org.fcrepo.kernel.api.exception.InvalidChecksumException;
+import org.fcrepo.kernel.api.models.FedoraBinary;
+import org.fcrepo.kernel.api.services.BinaryService;
 
 import org.apache.commons.io.FileUtils;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;

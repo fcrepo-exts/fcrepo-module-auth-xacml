@@ -15,7 +15,7 @@
  */
 package org.fcrepo.auth.xacml;
 
-import static org.fcrepo.kernel.impl.utils.FedoraTypesUtils.isInternalNode;
+import static org.fcrepo.kernel.modeshape.utils.FedoraTypesUtils.isInternalNode;
 import static org.modeshape.jcr.api.JcrConstants.JCR_CONTENT;
 import static org.jboss.security.xacml.sunxacml.ctx.Status.STATUS_PROCESSING_ERROR;
 

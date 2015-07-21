@@ -32,11 +32,10 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.models.NonRdfSourceDescription;
-import org.fcrepo.kernel.models.FedoraBinary;
-import org.fcrepo.kernel.exception.RepositoryRuntimeException;
-
-import org.fcrepo.kernel.services.BinaryService;
+import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.api.models.NonRdfSourceDescription;
+import org.fcrepo.kernel.api.models.FedoraBinary;
+import org.fcrepo.kernel.api.services.BinaryService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
