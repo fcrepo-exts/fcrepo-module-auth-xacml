@@ -44,6 +44,31 @@ import org.springframework.stereotype.Component;
 @Component("fad")
 public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelegate {
 
+    public static final String EVERYONE_NAME = "EVERYONE";
+
+    /**
+     * The security principal for every request, that represents the "EVERYONE" user.
+     */
+    private static final Principal EVERYONE = new Principal() {
+
+        // Currently, this is identical to the EVERYONE principal defined in the RBACL module. This is done to
+        // preserve compatibility with earlier versions, where the definition of EVERYONE was part of the
+        // ServletContainerAuthenticationProvider and shared with all of the authorization modules. Currently, the
+        // XACML module does not appear to actually use this principal, and it may be worth reviewing in future for
+        // removal, or for changing it to a more XACML-specific concept of "everyone".
+
+        @Override
+        public String getName() {
+            return XACMLAuthorizationDelegate.EVERYONE_NAME;
+        }
+
+        @Override
+        public String toString() {
+            return getName();
+        }
+
+    };
+
     /**
      * Class-level logger.
      */
@@ -183,6 +208,14 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         builder.addGroups(user, allGroups);
 
         return builder.build();
+    }
+
+    /**
+     * Get the principal that represents the "EVERYONE" user.
+     */
+    @Override
+    public Principal getEveryonePrincipal() {
+        return EVERYONE;
     }
 
 }
