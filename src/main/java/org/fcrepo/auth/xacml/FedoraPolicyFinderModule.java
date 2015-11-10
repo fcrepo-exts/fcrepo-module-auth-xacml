@@ -29,7 +29,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.api.FedoraJcrTypes;
+import org.fcrepo.kernel.api.FedoraTypes;
 import org.fcrepo.kernel.api.models.FedoraBinary;
 import org.fcrepo.kernel.api.models.FedoraResource;
 import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
@@ -186,7 +186,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
 
             final FedoraBinary policyBinary;
             final FedoraResource resource = nodeService.find(internalSession, prop.getNode().getPath());
-            if (resource.hasType(FedoraJcrTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {
+            if (resource.hasType(FedoraTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {
                 policyBinary = binaryService.findOrCreate(internalSession, resource.getNode().getPath());
 
             } else {
@@ -245,7 +245,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
 
             final FedoraBinary policyBinary;
             final FedoraResource resource = nodeService.find(internalSession, path);
-            if (resource.hasType(FedoraJcrTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {
+            if (resource.hasType(FedoraTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {
                 policyBinary = binaryService.findOrCreate(internalSession, resource.getNode().getPath());
 
             } else {
