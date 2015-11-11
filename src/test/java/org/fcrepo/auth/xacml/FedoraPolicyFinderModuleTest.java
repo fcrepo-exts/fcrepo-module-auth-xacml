@@ -40,7 +40,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.api.FedoraJcrTypes;
+import org.fcrepo.kernel.api.FedoraTypes;
 import org.fcrepo.kernel.api.models.NonRdfSourceDescription;
 import org.fcrepo.kernel.api.models.FedoraBinary;
 import org.fcrepo.kernel.api.services.BinaryService;
@@ -125,7 +125,7 @@ public class FedoraPolicyFinderModuleTest {
         when(mockPolicyProperty.getNode()).thenReturn(mockPolicyNode);
 
         when(mockNodeService.find(any(Session.class), anyString())).thenReturn(mockResource);
-        when(mockResource.hasType(FedoraJcrTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)).thenReturn(true);
+        when(mockResource.hasType(FedoraTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)).thenReturn(true);
         when(mockResource.getDescribedResource()).thenReturn(mockBinary);
 
         when(mockResource.getNode()).thenReturn(mockNode);
