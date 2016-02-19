@@ -18,6 +18,8 @@ package org.fcrepo.auth.xacml;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
+import static org.fcrepo.kernel.api.RdfCollectors.toModel;
+import static org.fcrepo.kernel.api.RdfContext.PROPERTIES;
 import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.RESOURCE_TARGET;
 import static org.jboss.security.xacml.sunxacml.attr.BagAttribute.createEmptyBag;
 import static org.jboss.security.xacml.sunxacml.ctx.Status.STATUS_PROCESSING_ERROR;
@@ -35,7 +37,6 @@ import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.api.identifiers.IdentifierConverter;
 import org.fcrepo.kernel.api.models.FedoraResource;
 import org.fcrepo.kernel.api.services.NodeService;
-import org.fcrepo.kernel.modeshape.rdf.impl.PropertiesRdfContext;
 import org.fcrepo.kernel.modeshape.rdf.impl.DefaultIdentifierTranslator;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
@@ -188,7 +189,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
         // Get the properties of the resource
         Model properties;
         try {
-            properties = resource.getTriples(idTranslator, PropertiesRdfContext.class).asModel();
+            properties = resource.getTriples(idTranslator, PROPERTIES).collect(toModel());
 
         } catch (final RepositoryRuntimeException e) {
             LOGGER.debug("Cannot retrieve any properties for [{}]:  {}", resourceId, e);
