@@ -15,6 +15,7 @@
  */
 package org.fcrepo.auth.xacml;
 
+import static org.fcrepo.kernel.api.RdfContext.PROPERTIES;
 import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.RESOURCE_TARGET;
 import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.SUBJECT_TARGET;
 import static org.junit.Assert.assertEquals;
@@ -38,8 +39,7 @@ import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.api.identifiers.IdentifierConverter;
 import org.fcrepo.kernel.api.models.FedoraResource;
 import org.fcrepo.kernel.api.services.NodeService;
-import org.fcrepo.kernel.api.utils.iterators.RdfStream;
-import org.fcrepo.kernel.modeshape.rdf.impl.PropertiesRdfContext;
+import org.fcrepo.kernel.api.RdfStream;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -158,12 +158,12 @@ public class TripleAttributeFinderModuleTest {
         final String resourceId = "/{ns}path/{ns}to/{ns}resource";
 
         when(mockNodeService.find(mockSession, resourceId)).thenReturn(mockFedoraResource);
-        when(mockFedoraResource.getTriples(any(IdentifierConverter.class), eq(PropertiesRdfContext.class))).thenReturn(
+        when(mockFedoraResource.getTriples(any(IdentifierConverter.class), eq(PROPERTIES))).thenReturn(
                 mockRdfStream);
         when(mockIdentifierTranslator.reverse()).thenReturn(mockIdentifierTranslator);
         when(mockIdentifierTranslator.convert(mockFedoraResource)).thenReturn(mockResource);
         when(mockFedoraResource.getPath()).thenReturn(resourceId);
-        when(mockRdfStream.asModel()).thenReturn(mockModel);
+        when(mockRdfStream.collect(any())).thenReturn(mockModel);
         when(mockModel.listObjectsOfProperty(any(Resource.class),
                 any(Property.class))).thenReturn(mockMatches);
         when(mockMatches.hasNext()).thenReturn(true).thenReturn(false);
@@ -294,7 +294,7 @@ public class TripleAttributeFinderModuleTest {
         final String[] actions = { "read" };
 
         when(mockNodeService.find(mockSession, resourceId)).thenReturn(mockFedoraResource);
-        when(mockFedoraResource.getTriples(any(IdentifierConverter.class), eq(PropertiesRdfContext.class))).thenThrow(
+        when(mockFedoraResource.getTriples(any(IdentifierConverter.class), eq(PROPERTIES))).thenThrow(
                 new RepositoryRuntimeException("expected"));
 
         final EvaluationResult result = doFindAttribute(resourceId, actions);
