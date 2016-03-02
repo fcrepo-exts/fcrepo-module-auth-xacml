@@ -19,7 +19,7 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
 import static org.fcrepo.kernel.api.RdfCollectors.toModel;
-import static org.fcrepo.kernel.api.RdfContext.PROPERTIES;
+import static org.fcrepo.kernel.api.RequiredRdfContext.PROPERTIES;
 import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.RESOURCE_TARGET;
 import static org.jboss.security.xacml.sunxacml.attr.BagAttribute.createEmptyBag;
 import static org.jboss.security.xacml.sunxacml.ctx.Status.STATUS_PROCESSING_ERROR;
