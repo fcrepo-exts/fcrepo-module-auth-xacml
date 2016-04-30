@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>FedoraPolicyFinderModule.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fedora Repository XACML Authorization Module</a> &gt; <a href="index.source.html" class="el_package">org.fcrepo.auth.xacml</a> &gt; <span class="el_source">FedoraPolicyFinderModule.java</span></div><h1>FedoraPolicyFinderModule.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2015 DuraSpace, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import static org.fcrepo.auth.xacml.URIConstants.POLICY_URI_PREFIX;
+import static org.fcrepo.auth.xacml.URIConstants.XACML_POLICY_PROPERTY;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.net.URI;
+
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.api.FedoraTypes;
+import org.fcrepo.kernel.api.models.FedoraBinary;
+import org.fcrepo.kernel.api.models.FedoraResource;
+import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.api.services.BinaryService;
+import org.fcrepo.kernel.api.services.NodeService;
+import org.jboss.security.xacml.sunxacml.AbstractPolicy;
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.MatchResult;
+import org.jboss.security.xacml.sunxacml.Policy;
+import org.jboss.security.xacml.sunxacml.PolicyMetaData;
+import org.jboss.security.xacml.sunxacml.PolicySet;
+import org.jboss.security.xacml.sunxacml.VersionConstraints;
+import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
+import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
+import org.jboss.security.xacml.sunxacml.finder.PolicyFinder;
+import org.jboss.security.xacml.sunxacml.finder.PolicyFinderModule;
+import org.jboss.security.xacml.sunxacml.finder.PolicyFinderResult;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+
+/**
+ * Locates a policy in ModeShape by evaluation context or by URI.
+ *
+ * @author Gregory Jansen
+ * @author bbpennel
+ */
+@Component(&quot;fedoraPolicyFinderModule&quot;)
+<span class="fc" id="L64">public class FedoraPolicyFinderModule extends PolicyFinderModule {</span>
+
+<span class="fc" id="L66">    private static final Logger LOGGER = getLogger(FedoraPolicyFinderModule.class);</span>
+
+    @Autowired
+    private SessionFactory sessionFactory;
+
+    @Autowired
+    private BinaryService binaryService;
+
+    @Autowired
+    private NodeService nodeService;
+
+    private PolicyFinder finder;
+
+    /*
+     * This policy finder can find by request context.
+     * @see org.jboss.security.xacml.sunxacml.finder.PolicyFinderModule#
+     * isRequestSupported()
+     */
+    @Override
+    public final boolean isRequestSupported() {
+<span class="fc" id="L86">        return true;</span>
+    }
+
+    /*
+     * This policy finder can find by reference (URI)
+     * @see org.jboss.security.xacml.sunxacml.finder.PolicyFinderModule#
+     * isIdReferenceSupported()
+     */
+    @Override
+    public final boolean isIdReferenceSupported() {
+<span class="fc" id="L96">        return true;</span>
+    }
+
+    /**
+     * Retrieves the policy from the given policy node
+     *
+     * @param policyBinary
+     * @return
+     */
+    private AbstractPolicy getPolicy(final FedoraBinary policyBinary) {
+<span class="fc" id="L106">        return loadPolicy(policyBinary);</span>
+    }
+
+    /**
+     * Creates a new policy or policy set object from the given policy node
+     *
+     * @param policyBinary
+     * @return
+     */
+    private AbstractPolicy loadPolicy(final FedoraBinary policyBinary) {
+<span class="fc" id="L116">        String policyName = &quot;unparsed&quot;;</span>
+        try {
+            // create the factory
+<span class="fc" id="L119">            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();</span>
+<span class="fc" id="L120">            factory.setIgnoringComments(true);</span>
+<span class="fc" id="L121">            factory.setNamespaceAware(true);</span>
+<span class="fc" id="L122">            factory.setValidating(false);</span>
+
+<span class="fc" id="L124">            final DocumentBuilder db = factory.newDocumentBuilder();</span>
+
+            // Parse the policy content
+<span class="fc" id="L127">            final Document doc = db.parse(policyBinary.getContent());</span>
+
+            // handle the policy, if it's a known type
+<span class="fc" id="L130">            final Element root = doc.getDocumentElement();</span>
+<span class="fc" id="L131">            final String name = root.getTagName();</span>
+
+<span class="fc" id="L133">            policyName = PolicyUtil.getID(doc);</span>
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">            if (name.equals(&quot;Policy&quot;)) {</span>
+<span class="nc" id="L135">                return Policy.getInstance(root);</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">            } else if (name.equals(&quot;PolicySet&quot;)) {</span>
+<span class="fc" id="L137">                return PolicySet.getInstance(root, finder);</span>
+            } else {
+                // this isn't a root type that we know how to handle
+<span class="nc" id="L140">                throw new Exception(&quot;Unknown root document type: &quot; + name);</span>
+            }
+<span class="nc" id="L142">        } catch (final Exception e) {</span>
+<span class="nc" id="L143">            LOGGER.error(&quot;Unable to parse policy from {}&quot;, policyName, e);</span>
+        }
+
+        // a default fall-through in the case of an error
+<span class="nc" id="L147">        return null;</span>
+    }
+
+    /*
+     * Find a policy in ModeShape that is appropriate for the evaluation
+     * context.
+     * @see
+     * org.jboss.security.xacml.sunxacml.finder.PolicyFinderModule#findPolicy
+     * (org.jboss.security.xacml.sunxacml.EvaluationCtx)
+     */
+    @Override
+    public final PolicyFinderResult findPolicy(final EvaluationCtx context) {
+<span class="fc" id="L159">        final EvaluationResult ridEvalRes = context.getResourceAttribute(</span>
+<span class="fc" id="L160">                URI.create(&quot;http://www.w3.org/2001/XMLSchema#string&quot;), URIConstants.ATTRIBUTEID_RESOURCE_ID, null);</span>
+<span class="fc" id="L161">        final AttributeValue resourceIdAttValue = ridEvalRes.getAttributeValue();</span>
+<span class="fc" id="L162">        String path = resourceIdAttValue.getValue().toString();</span>
+
+<span class="fc" id="L164">        LOGGER.debug(&quot;Finding policy for resource: {}&quot;, path);</span>
+
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">        if (&quot;&quot;.equals(path.trim())) {</span>
+<span class="nc" id="L167">            path = &quot;/&quot;;</span>
+        }
+
+        try {
+<span class="fc" id="L171">            final Session internalSession = sessionFactory.getInternalSession();</span>
+
+            // Walk up the hierarchy to find the first node with a policy assigned
+<span class="fc" id="L174">            Node nodeWithPolicy = PolicyUtil.getFirstRealNode(path, internalSession);</span>
+<span class="pc bpc" id="L175" title="1 of 4 branches missed.">            while (nodeWithPolicy != null &amp;&amp; !nodeWithPolicy.hasProperty(XACML_POLICY_PROPERTY)) {</span>
+<span class="fc" id="L176">                nodeWithPolicy = nodeWithPolicy.getParent();</span>
+            }
+
+            // This should never happen, as PolicyUtil.getFirstRealNode() at least returns the root node.
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">            if (null == nodeWithPolicy) {</span>
+<span class="nc" id="L181">                LOGGER.warn(&quot;No policy found for: {}!&quot;, path);</span>
+<span class="nc" id="L182">                return new PolicyFinderResult();</span>
+            }
+
+<span class="fc" id="L185">            final Property prop = nodeWithPolicy.getProperty(XACML_POLICY_PROPERTY);</span>
+
+            final FedoraBinary policyBinary;
+<span class="fc" id="L188">            final FedoraResource resource = nodeService.find(internalSession, prop.getNode().getPath());</span>
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">            if (resource.hasType(FedoraTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {</span>
+<span class="fc" id="L190">                policyBinary = binaryService.findOrCreate(internalSession, resource.getNode().getPath());</span>
+
+            } else {
+<span class="nc" id="L193">                LOGGER.warn(&quot;Policy Binary not found for: {}&quot;, path);</span>
+<span class="nc" id="L194">                return new PolicyFinderResult();</span>
+            }
+
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">            if (policyBinary == null) {</span>
+<span class="nc" id="L198">                LOGGER.warn(&quot;Policy binary for path: {} was null!&quot;, nodeWithPolicy.getPath());</span>
+<span class="nc" id="L199">                return new PolicyFinderResult();</span>
+            }
+
+<span class="fc" id="L202">            final AbstractPolicy policy = getPolicy(policyBinary);</span>
+
+            // Evaluate if the policy targets match the current context
+<span class="fc" id="L205">            final MatchResult match = policy.match(context);</span>
+<span class="fc" id="L206">            final int result = match.getResult();</span>
+
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">            if (result == MatchResult.INDETERMINATE) {</span>
+<span class="nc" id="L209">                return new PolicyFinderResult(match.getStatus());</span>
+            }
+
+            // Found a good policy, return it
+<span class="pc bpc" id="L213" title="1 of 2 branches missed.">            if (result == MatchResult.MATCH) {</span>
+<span class="fc" id="L214">                return new PolicyFinderResult(policy);</span>
+            }
+
+<span class="nc" id="L217">            return new PolicyFinderResult();</span>
+<span class="nc" id="L218">        } catch (final RepositoryException e) {</span>
+<span class="nc" id="L219">            LOGGER.warn(&quot;Failed to retrieve a policy for {}&quot;, e, path);</span>
+<span class="nc" id="L220">            return new PolicyFinderResult();</span>
+        }
+    }
+
+    /*
+     * Find a policy in ModeShape by reference URI.
+     * @see
+     * org.jboss.security.xacml.sunxacml.finder.PolicyFinderModule#findPolicy
+     * (java.net.URI, int, org.jboss.security.xacml.sunxacml.VersionConstraints,
+     * org.jboss.security.xacml.sunxacml.PolicyMetaData)
+     */
+    @Override
+    public final PolicyFinderResult findPolicy(final URI idReference,
+                                               final int type,
+                                               final VersionConstraints constraints,
+                                               final PolicyMetaData parentMetaData) {
+        try {
+<span class="fc" id="L237">            final String id = idReference.toString();</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">            if (!id.startsWith(POLICY_URI_PREFIX)) {</span>
+<span class="nc" id="L239">                LOGGER.warn(&quot;Policy reference must begin with {}, but was {}&quot;, POLICY_URI_PREFIX, id);</span>
+<span class="nc" id="L240">                return new PolicyFinderResult();</span>
+            }
+
+<span class="fc" id="L243">            final String path = PolicyUtil.getPathForId(id);</span>
+<span class="fc" id="L244">            final Session internalSession = sessionFactory.getInternalSession();</span>
+
+            final FedoraBinary policyBinary;
+<span class="fc" id="L247">            final FedoraResource resource = nodeService.find(internalSession, path);</span>
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">            if (resource.hasType(FedoraTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {</span>
+<span class="fc" id="L249">                policyBinary = binaryService.findOrCreate(internalSession, resource.getNode().getPath());</span>
+
+            } else {
+<span class="nc" id="L252">                LOGGER.warn(&quot;Policy Binary not found for: {}&quot;, path);</span>
+<span class="nc" id="L253">                return new PolicyFinderResult();</span>
+            }
+
+<span class="fc" id="L256">            final AbstractPolicy policy = getPolicy(policyBinary);</span>
+
+<span class="fc" id="L258">            return new PolicyFinderResult(policy);</span>
+
+<span class="nc" id="L260">        } catch (final RepositoryRuntimeException | RepositoryException e) {</span>
+<span class="nc" id="L261">            LOGGER.warn(&quot;Failed to retrieve a policy for &quot; + idReference.toString(), e);</span>
+<span class="nc" id="L262">            return new PolicyFinderResult();</span>
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.jboss.security.xacml.sunxacml.finder.PolicyFinderModule#init(org.
+     * jboss.security.xacml.sunxacml.finder.PolicyFinder)
+     */
+    @Override
+    public void init(final PolicyFinder finder) {
+<span class="fc" id="L274">        this.finder = finder;</span>
+<span class="fc" id="L275">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
