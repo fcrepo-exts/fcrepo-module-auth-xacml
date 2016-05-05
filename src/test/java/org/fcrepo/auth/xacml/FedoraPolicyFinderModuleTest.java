@@ -45,6 +45,7 @@ import org.fcrepo.kernel.api.models.NonRdfSourceDescription;
 import org.fcrepo.kernel.api.models.FedoraBinary;
 import org.fcrepo.kernel.api.services.BinaryService;
 import org.fcrepo.kernel.api.services.NodeService;
+import org.fcrepo.kernel.modeshape.NonRdfSourceDescriptionImpl;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.PolicyReference;
@@ -70,22 +71,16 @@ public class FedoraPolicyFinderModuleTest {
     private Session mockSession;
 
     @Mock
-    private Node mockNode;
-
-    @Mock
-    private Node mockParentNode;
+    private Node mockNode, mockParentNode, mockPolicyNode;
 
     @Mock
     private Property mockPolicyProperty;
 
     @Mock
-    private Node mockPolicyNode;
-
-    @Mock
     private NonRdfSourceDescription mockPolicyDs;
 
     @Mock
-    private NonRdfSourceDescription mockResource;
+    private NonRdfSourceDescriptionImpl mockResource;
 
     @Mock
     private FedoraBinary mockBinary;

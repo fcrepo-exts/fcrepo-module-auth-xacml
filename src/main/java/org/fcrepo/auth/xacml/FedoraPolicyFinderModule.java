@@ -32,7 +32,6 @@ import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.api.FedoraTypes;
 import org.fcrepo.kernel.api.models.FedoraBinary;
 import org.fcrepo.kernel.api.models.FedoraResource;
-import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.api.services.BinaryService;
 import org.fcrepo.kernel.api.services.NodeService;
 import org.jboss.security.xacml.sunxacml.AbstractPolicy;
@@ -187,7 +186,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
             final FedoraBinary policyBinary;
             final FedoraResource resource = nodeService.find(internalSession, prop.getNode().getPath());
             if (resource.hasType(FedoraTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {
-                policyBinary = binaryService.findOrCreate(internalSession, resource.getNode().getPath());
+                policyBinary = binaryService.findOrCreate(internalSession, resource.getPath());
 
             } else {
                 LOGGER.warn("Policy Binary not found for: {}", path);
@@ -233,34 +232,28 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
                                                final int type,
                                                final VersionConstraints constraints,
                                                final PolicyMetaData parentMetaData) {
-        try {
-            final String id = idReference.toString();
-            if (!id.startsWith(POLICY_URI_PREFIX)) {
-                LOGGER.warn("Policy reference must begin with {}, but was {}", POLICY_URI_PREFIX, id);
-                return new PolicyFinderResult();
-            }
-
-            final String path = PolicyUtil.getPathForId(id);
-            final Session internalSession = sessionFactory.getInternalSession();
-
-            final FedoraBinary policyBinary;
-            final FedoraResource resource = nodeService.find(internalSession, path);
-            if (resource.hasType(FedoraTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {
-                policyBinary = binaryService.findOrCreate(internalSession, resource.getNode().getPath());
-
-            } else {
-                LOGGER.warn("Policy Binary not found for: {}", path);
-                return new PolicyFinderResult();
-            }
-
-            final AbstractPolicy policy = getPolicy(policyBinary);
-
-            return new PolicyFinderResult(policy);
-
-        } catch (final RepositoryRuntimeException | RepositoryException e) {
-            LOGGER.warn("Failed to retrieve a policy for " + idReference.toString(), e);
+        final String id = idReference.toString();
+        if (!id.startsWith(POLICY_URI_PREFIX)) {
+            LOGGER.warn("Policy reference must begin with {}, but was {}", POLICY_URI_PREFIX, id);
             return new PolicyFinderResult();
         }
+
+        final String path = PolicyUtil.getPathForId(id);
+        final Session internalSession = sessionFactory.getInternalSession();
+
+        final FedoraBinary policyBinary;
+        final FedoraResource resource = nodeService.find(internalSession, path);
+        if (resource.hasType(FedoraTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)) {
+            policyBinary = binaryService.findOrCreate(internalSession, resource.getPath());
+
+        } else {
+            LOGGER.warn("Policy Binary not found for: {}", path);
+            return new PolicyFinderResult();
+        }
+
+        final AbstractPolicy policy = getPolicy(policyBinary);
+
+        return new PolicyFinderResult(policy);
     }
 
     /*
