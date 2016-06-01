@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
@@ -34,7 +35,6 @@ import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
 import org.jboss.security.xacml.sunxacml.finder.ResourceFinderModule;
 import org.jboss.security.xacml.sunxacml.finder.ResourceFinderResult;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 
@@ -49,7 +49,7 @@ public class FedoraResourceFinderModule extends ResourceFinderModule {
     /**
      * Fedora's ModeShape session factory.
      */
-    @Autowired
+    @Inject
     protected SessionFactory sessionFactory;
 
     /*

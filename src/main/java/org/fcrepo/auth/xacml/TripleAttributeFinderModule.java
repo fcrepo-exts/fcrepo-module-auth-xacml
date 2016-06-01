@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import javax.jcr.Session;
+import javax.inject.Inject;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
@@ -47,7 +48,6 @@ import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
 import org.jboss.security.xacml.sunxacml.ctx.Status;
 import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.hp.hpl.jena.rdf.model.Model;
@@ -74,10 +74,10 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
     /**
      * Fedora's ModeShape session factory.
      */
-    @Autowired
+    @Inject
     protected SessionFactory sessionFactory;
 
-    @Autowired
+    @Inject
     protected NodeService nodeService;
 
     /**

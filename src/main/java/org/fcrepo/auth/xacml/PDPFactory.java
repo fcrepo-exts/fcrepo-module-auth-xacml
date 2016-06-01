@@ -17,6 +17,8 @@ package org.fcrepo.auth.xacml;
 
 import java.util.Collections;
 
+import javax.inject.Inject;
+
 import org.jboss.security.xacml.sunxacml.PDP;
 import org.jboss.security.xacml.sunxacml.PDPConfig;
 import org.jboss.security.xacml.sunxacml.finder.AttributeFinder;
@@ -24,7 +26,6 @@ import org.jboss.security.xacml.sunxacml.finder.PolicyFinder;
 import org.jboss.security.xacml.sunxacml.finder.ResourceFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 
@@ -38,10 +39,10 @@ public class PDPFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PDPFactory.class);
 
-    @Autowired
+    @Inject
     private FedoraPolicyFinderModule fedoraPolicyFinderModule;
 
-    @Autowired
+    @Inject
     private FedoraResourceFinderModule fedoraResourceFinderModule;
 
     /**

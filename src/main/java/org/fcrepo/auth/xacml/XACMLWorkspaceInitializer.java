@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 
+import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -36,7 +37,6 @@ import org.apache.commons.io.FileUtils;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableList;
 
@@ -55,10 +55,10 @@ public class XACMLWorkspaceInitializer {
     /**
      * Fedora's ModeShape session factory.
      */
-    @Autowired
+    @Inject
     private SessionFactory sessionFactory;
 
-    @Autowired
+    @Inject
     private BinaryService binaryService;
 
     private final File initialPoliciesDirectory;

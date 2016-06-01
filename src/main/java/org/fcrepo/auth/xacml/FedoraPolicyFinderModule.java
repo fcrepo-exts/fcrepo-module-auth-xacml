@@ -21,6 +21,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.URI;
 
+import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
@@ -47,7 +48,6 @@ import org.jboss.security.xacml.sunxacml.finder.PolicyFinder;
 import org.jboss.security.xacml.sunxacml.finder.PolicyFinderModule;
 import org.jboss.security.xacml.sunxacml.finder.PolicyFinderResult;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -64,13 +64,13 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
 
     private static final Logger LOGGER = getLogger(FedoraPolicyFinderModule.class);
 
-    @Autowired
+    @Inject
     private SessionFactory sessionFactory;
 
-    @Autowired
+    @Inject
     private BinaryService binaryService;
 
-    @Autowired
+    @Inject
     private NodeService nodeService;
 
     private PolicyFinder finder;
