@@ -52,9 +52,9 @@ import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 
 /**
  * Finds resource attributes based on triples in the Fedora graph. Retrieves values where the attribute URI matches the

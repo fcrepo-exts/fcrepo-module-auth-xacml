@@ -24,9 +24,9 @@
       javax.servlet.http,
 
       com.google.common.*,
-      com.hp.hpl.jena.*,
 
       org.apache.commons.io
+      org.apache.jena.*,
       org.jboss.security.xacml.*,
       org.modeshape.jcr.api.*,
       org.springframework.beans.*,
