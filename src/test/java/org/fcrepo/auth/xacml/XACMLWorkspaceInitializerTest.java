@@ -25,7 +25,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.io.File;
 
@@ -38,9 +37,12 @@ import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.api.models.NonRdfSourceDescription;
 import org.fcrepo.kernel.api.models.FedoraBinary;
 import org.fcrepo.kernel.api.services.BinaryService;
+import org.fcrepo.kernel.modeshape.FedoraSessionImpl;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * <p>
@@ -49,6 +51,7 @@ import org.mockito.Mock;
  *
  * @author mohideen
  */
+@RunWith(MockitoJUnitRunner.class)
 public class XACMLWorkspaceInitializerTest {
 
     private XACMLWorkspaceInitializer xacmlWI;
@@ -57,7 +60,10 @@ public class XACMLWorkspaceInitializerTest {
     private SessionFactory mockSessionFactory;
 
     @Mock
-    private Session mockSession;
+    private Session mockJcrSession;
+
+    @Mock
+    private FedoraSessionImpl mockSession;
 
     @Mock
     private Node mockNode;
@@ -73,10 +79,9 @@ public class XACMLWorkspaceInitializerTest {
 
     @Before
     public void setUp() throws Exception {
-        initMocks(this);
-
         when(mockSessionFactory.getInternalSession()).thenReturn(mockSession);
-        when(mockSession.getRootNode()).thenReturn(mockNode);
+        when(mockSession.getJcrSession()).thenReturn(mockJcrSession);
+        when(mockJcrSession.getRootNode()).thenReturn(mockNode);
         when(mockBinaryService.findOrCreate(eq(mockSession), anyString())).thenReturn(mockBinary);
         when(mockNonRdfSourceDescription.getPath()).thenReturn("/dummy/test/path");
 
@@ -140,7 +145,7 @@ public class XACMLWorkspaceInitializerTest {
     @Test(expected = Error.class)
     public void testInitLinkRootToPolicyException() throws Exception {
         when(mockBinaryService.findOrCreate(eq(mockSession), anyString())).thenReturn(mockBinary);
-        when(mockSession.getRootNode()).thenThrow(new RepositoryException("expected"));
+        when(mockJcrSession.getRootNode()).thenThrow(new RepositoryException("expected"));
 
         xacmlWI.init();
     }

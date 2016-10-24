@@ -22,6 +22,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
 import static org.fcrepo.kernel.api.RdfCollectors.toModel;
 import static org.fcrepo.kernel.api.RequiredRdfContext.PROPERTIES;
+import static org.fcrepo.kernel.modeshape.FedoraSessionImpl.getJcrSession;
 import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.RESOURCE_TARGET;
 import static org.jboss.security.xacml.sunxacml.attr.BagAttribute.createEmptyBag;
 import static org.jboss.security.xacml.sunxacml.ctx.Status.STATUS_PROCESSING_ERROR;
@@ -32,10 +33,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.jcr.Session;
 import javax.inject.Inject;
 
 import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.api.FedoraSession;
 import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.api.identifiers.IdentifierConverter;
 import org.fcrepo.kernel.api.models.FedoraResource;
@@ -134,7 +135,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
             return new EvaluationResult(empty_bag);
         }
 
-        final Session session;
+        final FedoraSession session;
         try {
             session = sessionFactory.getInternalSession();
         } catch (final RepositoryRuntimeException e) {
@@ -179,7 +180,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
                 return new EvaluationResult(empty_bag);
             }
             path = resource.getPath();
-            idTranslator = new DefaultIdentifierTranslator(session);
+            idTranslator = new DefaultIdentifierTranslator(getJcrSession(session));
 
         } catch (final RepositoryRuntimeException e) {
             // If the object does not exist, it may be due to the action being "create"

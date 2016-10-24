@@ -21,11 +21,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Set;
 
@@ -36,6 +37,7 @@ import javax.jcr.Session;
 import javax.jcr.nodetype.NodeType;
 
 import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.modeshape.FedoraSessionImpl;
 
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
 import org.jboss.security.xacml.sunxacml.finder.ResourceFinderResult;
@@ -46,29 +48,27 @@ import org.jboss.security.xacml.sunxacml.finder.ResourceFinderResult;
  *         Date: 5/9/14
  * @author Esme Cowles
  */
+@RunWith(MockitoJUnitRunner.class)
 public class FedoraResourceFinderModuleTest {
     FedoraResourceFinderModule resourceFinder;
 
     @Mock SessionFactory mockSessionFactory;
-    @Mock Session mockSession;
+    @Mock FedoraSessionImpl mockSession;
+    @Mock Session mockJcrSession;
     @Mock AttributeValue mockParent;
-    @Mock Node mockParentNode;
+    @Mock Node mockParentNode, mockChildNode, mockGrandchildNode;
     @Mock NodeType mockNodeType;
-    @Mock Node mockChildNode;
-    @Mock Node mockGrandchildNode;
-    @Mock NodeIterator mockParentIterator;
-    @Mock NodeIterator mockChildIterator;
-    @Mock NodeIterator mockGrandchildIterator;
+    @Mock NodeIterator mockParentIterator, mockChildIterator, mockGrandchildIterator;
 
     @Before
     public void setUp() throws RepositoryException {
-        initMocks(this);
         resourceFinder = new FedoraResourceFinderModule();
         resourceFinder.sessionFactory = mockSessionFactory;
 
         when( mockSessionFactory.getInternalSession() ).thenReturn(mockSession);
+        when( mockSession.getJcrSession() ).thenReturn(mockJcrSession);
         when( mockParent.getValue() ).thenReturn("/foo");
-        when( mockSession.getNode("/foo") ).thenReturn(mockParentNode);
+        when( mockJcrSession.getNode("/foo") ).thenReturn(mockParentNode);
 
         when( mockParentNode.getNodes() ).thenReturn(mockParentIterator);
         when( mockParentIterator.hasNext() ).thenReturn(true,false);

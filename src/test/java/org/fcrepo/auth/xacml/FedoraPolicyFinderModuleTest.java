@@ -42,11 +42,13 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.api.FedoraSession;
 import org.fcrepo.kernel.api.FedoraTypes;
 import org.fcrepo.kernel.api.models.NonRdfSourceDescription;
 import org.fcrepo.kernel.api.models.FedoraBinary;
 import org.fcrepo.kernel.api.services.BinaryService;
 import org.fcrepo.kernel.api.services.NodeService;
+import org.fcrepo.kernel.modeshape.FedoraSessionImpl;
 import org.fcrepo.kernel.modeshape.NonRdfSourceDescriptionImpl;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
@@ -70,7 +72,10 @@ public class FedoraPolicyFinderModuleTest {
     private SessionFactory mockSessionFactory;
 
     @Mock
-    private Session mockSession;
+    private FedoraSessionImpl mockSession;
+
+    @Mock
+    private Session mockJcrSession;
 
     @Mock
     private Node mockNode, mockParentNode, mockPolicyNode;
@@ -115,19 +120,20 @@ public class FedoraPolicyFinderModuleTest {
         when(context.getResourceId()).thenReturn(mockResourceId);
 
         when(mockSessionFactory.getInternalSession()).thenReturn(mockSession);
-        when(mockSession.getNode(anyString())).thenReturn(mockNode);
+        when(mockSession.getJcrSession()).thenReturn(mockJcrSession);
+        when(mockJcrSession.getNode(anyString())).thenReturn(mockNode);
 
         when(mockNode.getParent()).thenReturn(mockParentNode);
 
         when(mockPolicyProperty.getNode()).thenReturn(mockPolicyNode);
 
-        when(mockNodeService.find(any(Session.class), anyString())).thenReturn(mockResource);
+        when(mockNodeService.find(any(FedoraSession.class), anyString())).thenReturn(mockResource);
         when(mockResource.hasType(FedoraTypes.FEDORA_NON_RDF_SOURCE_DESCRIPTION)).thenReturn(true);
         when(mockResource.getDescribedResource()).thenReturn(mockBinary);
 
         when(mockResource.getNode()).thenReturn(mockNode);
         when(mockNode.getPath()).thenReturn("/{}myPath");
-        when(mockBinaryService.findOrCreate(any(Session.class), anyString())).thenReturn(mockBinary);
+        when(mockBinaryService.findOrCreate(any(FedoraSession.class), anyString())).thenReturn(mockBinary);
 
         finderModule = new FedoraPolicyFinderModule();
         setField(finderModule, "sessionFactory", mockSessionFactory);

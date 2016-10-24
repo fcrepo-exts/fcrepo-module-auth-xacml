@@ -31,6 +31,7 @@ import javax.jcr.nodetype.NodeTypeIterator;
 import javax.jcr.nodetype.NodeTypeTemplate;
 
 import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.api.FedoraSession;
 import org.fcrepo.kernel.api.exception.InvalidChecksumException;
 import org.fcrepo.kernel.api.models.FedoraBinary;
 import org.fcrepo.kernel.api.services.BinaryService;
@@ -41,6 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
+
+import static org.fcrepo.kernel.modeshape.FedoraSessionImpl.getJcrSession;
 
 /**
  * Sets up node types and default policies for the XACML Authorization Delegate.
@@ -116,7 +119,7 @@ public class XACMLWorkspaceInitializer {
     private void registerNodeTypes() {
         Session session = null;
         try {
-            session = sessionFactory.getInternalSession();
+            session = getJcrSession(sessionFactory.getInternalSession());
             final NodeTypeManager mgr = (NodeTypeManager) session.getWorkspace().getNodeTypeManager();
             final URL cnd = XACMLWorkspaceInitializer.class.getResource("/cnd/xacml-policy.cnd");
             final NodeTypeIterator nti = mgr.registerNodeTypes(cnd, true);
@@ -152,7 +155,7 @@ public class XACMLWorkspaceInitializer {
      * Create nodes for the default XACML policy set. Policies are created at paths according to their IDs.
      */
     private void loadInitialPolicies() {
-        Session session = null;
+        FedoraSession session = null;
         try {
             session = sessionFactory.getInternalSession();
             for (final File p : initialPoliciesDirectory.listFiles()) {
@@ -164,12 +167,12 @@ public class XACMLWorkspaceInitializer {
                 }
                 LOGGER.info("Add initial policy {} at {}", p.getAbsolutePath(), binary.getPath());
             }
-            session.save();
-        } catch (final RepositoryException | InvalidChecksumException | IOException e) {
+            session.commit();
+        } catch (final InvalidChecksumException | IOException e) {
             throw new Error("Cannot create default root policies", e);
         } finally {
             if (session != null) {
-                session.logout();
+                session.expire();
             }
         }
     }
@@ -180,7 +183,7 @@ public class XACMLWorkspaceInitializer {
     private void linkRootToPolicy() {
         Session session = null;
         try {
-            session = sessionFactory.getInternalSession();
+            session = getJcrSession(sessionFactory.getInternalSession());
             session.getRootNode().addMixin("authz:xacmlAssignable");
             final String id = PolicyUtil.getID(FileUtils.openInputStream(initialRootPolicyFile));
             final String repoPath = PolicyUtil.getPathForId(id);

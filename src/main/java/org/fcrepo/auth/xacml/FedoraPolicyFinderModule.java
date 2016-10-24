@@ -19,6 +19,7 @@ package org.fcrepo.auth.xacml;
 
 import static org.fcrepo.auth.xacml.URIConstants.POLICY_URI_PREFIX;
 import static org.fcrepo.auth.xacml.URIConstants.XACML_POLICY_PROPERTY;
+import static org.fcrepo.kernel.modeshape.FedoraSessionImpl.getJcrSession;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.URI;
@@ -27,11 +28,11 @@ import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.api.FedoraSession;
 import org.fcrepo.kernel.api.FedoraTypes;
 import org.fcrepo.kernel.api.models.FedoraBinary;
 import org.fcrepo.kernel.api.models.FedoraResource;
@@ -169,10 +170,10 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
         }
 
         try {
-            final Session internalSession = sessionFactory.getInternalSession();
+            final FedoraSession internalSession = sessionFactory.getInternalSession();
 
             // Walk up the hierarchy to find the first node with a policy assigned
-            Node nodeWithPolicy = PolicyUtil.getFirstRealNode(path, internalSession);
+            Node nodeWithPolicy = PolicyUtil.getFirstRealNode(path, getJcrSession(internalSession));
             while (nodeWithPolicy != null && !nodeWithPolicy.hasProperty(XACML_POLICY_PROPERTY)) {
                 nodeWithPolicy = nodeWithPolicy.getParent();
             }
@@ -241,7 +242,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
         }
 
         final String path = PolicyUtil.getPathForId(id);
-        final Session internalSession = sessionFactory.getInternalSession();
+        final FedoraSession internalSession = sessionFactory.getInternalSession();
 
         final FedoraBinary policyBinary;
         final FedoraResource resource = nodeService.find(internalSession, path);

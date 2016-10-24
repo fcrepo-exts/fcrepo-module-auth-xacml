@@ -29,19 +29,18 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.net.URI;
 import java.util.Set;
 
-import javax.jcr.Session;
-
 import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.api.FedoraSession;
+import org.fcrepo.kernel.api.RdfStream;
 import org.fcrepo.kernel.api.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.api.identifiers.IdentifierConverter;
 import org.fcrepo.kernel.api.models.FedoraResource;
 import org.fcrepo.kernel.api.services.NodeService;
-import org.fcrepo.kernel.api.RdfStream;
+import org.fcrepo.kernel.modeshape.FedoraSessionImpl;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -50,8 +49,10 @@ import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
 import org.jboss.security.xacml.sunxacml.ctx.Status;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.NodeIterator;
@@ -63,6 +64,7 @@ import org.apache.jena.rdf.model.Resource;
  * @author Andrew Woods
  * @author Scott Prater
  */
+@RunWith(MockitoJUnitRunner.class)
 public class TripleAttributeFinderModuleTest {
 
     private TripleAttributeFinderModule finder;
@@ -71,7 +73,7 @@ public class TripleAttributeFinderModuleTest {
     private SessionFactory mockSessionFactory;
 
     @Mock
-    private Session mockSession;
+    private FedoraSessionImpl mockSession;
 
     @Mock
     private NodeService mockNodeService;
@@ -100,8 +102,6 @@ public class TripleAttributeFinderModuleTest {
 
     @Before
     public void setUp() {
-        initMocks(this);
-
         finder = new TripleAttributeFinderModule();
         finder.sessionFactory = mockSessionFactory;
         finder.nodeService = mockNodeService;
@@ -250,7 +250,7 @@ public class TripleAttributeFinderModuleTest {
         final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
 
         doFindAttribute(resourceId, actions);
-        verify(mockNodeService).find(any(Session.class), propResourceId.capture());
+        verify(mockNodeService).find(any(FedoraSession.class), propResourceId.capture());
         assertEquals("/{ns}path/{ns}to/{ns}node", propResourceId.getValue());
     }
 
@@ -262,7 +262,7 @@ public class TripleAttributeFinderModuleTest {
         final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
 
         doFindAttribute(resourceId, actions);
-        verify(mockNodeService).find(any(Session.class), propResourceId.capture());
+        verify(mockNodeService).find(any(FedoraSession.class), propResourceId.capture());
         assertEquals("/{ns}path/{ns}to/{ns}node", propResourceId.getValue());
     }
 
@@ -274,7 +274,7 @@ public class TripleAttributeFinderModuleTest {
         final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
 
         doFindAttribute(resourceId, actions);
-        verify(mockNodeService).find(any(Session.class), propResourceId.capture());
+        verify(mockNodeService).find(any(FedoraSession.class), propResourceId.capture());
         assertEquals("/", propResourceId.getValue());
     }
 
@@ -286,7 +286,7 @@ public class TripleAttributeFinderModuleTest {
         final ArgumentCaptor<String> propResourceId = ArgumentCaptor.forClass(String.class);
 
         doFindAttribute(resourceId, actions);
-        verify(mockNodeService).find(any(Session.class), propResourceId.capture());
+        verify(mockNodeService).find(any(FedoraSession.class), propResourceId.capture());
         assertEquals("/", propResourceId.getValue());
     }
 
