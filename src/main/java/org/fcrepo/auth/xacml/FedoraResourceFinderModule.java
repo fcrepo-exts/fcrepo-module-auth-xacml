@@ -17,6 +17,7 @@
  */
 package org.fcrepo.auth.xacml;
 
+import static org.fcrepo.kernel.modeshape.FedoraSessionImpl.getJcrSession;
 import static org.fcrepo.kernel.modeshape.utils.FedoraTypesUtils.isInternalNode;
 import static org.modeshape.jcr.api.JcrConstants.JCR_CONTENT;
 import static org.jboss.security.xacml.sunxacml.ctx.Status.STATUS_PROCESSING_ERROR;
@@ -29,9 +30,9 @@ import javax.inject.Inject;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.api.FedoraSession;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -110,8 +111,8 @@ public class FedoraResourceFinderModule extends ResourceFinderModule {
     **/
     private ResourceFinderResult findChildren( final AttributeValue parent, final boolean recurse ) {
         try {
-            final Session session = sessionFactory.getInternalSession();
-            final Node node = session.getNode( parent.getValue().toString() );
+            final FedoraSession session = sessionFactory.getInternalSession();
+            final Node node = getJcrSession(session).getNode( parent.getValue().toString() );
             final Set<String> children = new HashSet<>();
             findChildren( node, children, recurse );
             return new ResourceFinderResult( children );
