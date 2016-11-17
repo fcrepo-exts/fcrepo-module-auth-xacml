@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>URIConstants.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fedora Repository XACML Authorization Module</a> &gt; <a href="index.source.html" class="el_package">org.fcrepo.auth.xacml</a> &gt; <span class="el_source">URIConstants.java</span></div><h1>URIConstants.java</h1><pre class="source lang-java linenums">/*
+ * Licensed to DuraSpace under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * DuraSpace licenses this file to you under the Apache License,
+ * Version 2.0 (the &quot;License&quot;); you may not use this file except in
+ * compliance with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import java.net.URI;
+
+import org.jboss.security.xacml.interfaces.XACMLConstants;
+
+
+/**
+ * URIs that are used in this module.
+ *
+ * @author Gregory Jansen
+ */
+<span class="nc" id="L30">public abstract class URIConstants {</span>
+
+    /**
+     * ID of the subject (user principal).
+     */
+<span class="fc" id="L35">    public static final URI ATTRIBUTEID_SUBJECT_ID = URI</span>
+<span class="fc" id="L36">            .create(XACMLConstants.ATTRIBUTEID_SUBJECT_ID);</span>
+
+    /**
+     * Roles
+     */
+    public static final String FCREPO_SUBJECT_ROLE_VALUE = &quot;fcrepo-xacml:subject-role&quot;;
+<span class="fc" id="L42">    public static final URI FCREPO_SUBJECT_ROLE = URI.create(FCREPO_SUBJECT_ROLE_VALUE);</span>
+
+    /**
+     * Groups
+     */
+    public static final String FCREPO_SUBJECT_GROUP_VALUE = &quot;fcrepo-xacml:subject-group&quot;;
+<span class="fc" id="L48">    public static final URI FCREPO_SUBJECT_GROUP = URI.create(FCREPO_SUBJECT_GROUP_VALUE);</span>
+
+    /**
+     * ID of the action (ModeShape permission name).
+     */
+<span class="fc" id="L53">    public static final URI ATTRIBUTEID_ACTION_ID = URI</span>
+<span class="fc" id="L54">            .create(XACMLConstants.ATTRIBUTEID_ACTION_ID);</span>
+
+    /**
+     * ID of the resource (ModeShape node/property path).
+     */
+<span class="fc" id="L59">    public static final URI ATTRIBUTEID_RESOURCE_ID = URI</span>
+<span class="fc" id="L60">            .create(XACMLConstants.ATTRIBUTEID_RESOURCE_ID);</span>
+
+    /**
+     * External URI of the resource (External Identifier).
+     */
+<span class="fc" id="L65">    public static final URI ATTRIBUTEID_RESOURCE_URI = URI.create(&quot;urn:fedora:xacml:2.0:resource:resource-uri&quot;);</span>
+
+    /**
+     * ID of the ModeShape workspace for this resource.
+     */
+<span class="fc" id="L70">    public static final URI ATTRIBUTEID_RESOURCE_WORKSPACE = URI</span>
+<span class="fc" id="L71">            .create(&quot;urn:fedora:xacml:2.0:resource:resource-workspace&quot;);</span>
+
+    /**
+     * Scope of the request (DESCENDANTS if &quot;remove&quot;, IMMEDIATE otherwise).
+     */
+<span class="fc" id="L76">    public static final URI ATTRIBUTEID_RESOURCE_SCOPE = URI</span>
+<span class="fc" id="L77">            .create(&quot;urn:oasis:names:tc:xacml:1.0:resource:scope&quot;);</span>
+
+    public static final String XACML_POLICY_PROPERTY = &quot;authz:policy&quot;;
+
+    public static final String POLICY_URI_PREFIX = &quot;info:fedora&quot;;
+
+    /**
+     * Original request IP, which may be forwarded by an application.
+     */
+<span class="fc" id="L86">    public static final URI ATTRIBUTEID_ENVIRONMENT_ORIGINAL_IP_ADDRESS = URI</span>
+<span class="fc" id="L87">            .create(&quot;urn:fedora:xacml:2.0:environment:original-ip-address&quot;);</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
