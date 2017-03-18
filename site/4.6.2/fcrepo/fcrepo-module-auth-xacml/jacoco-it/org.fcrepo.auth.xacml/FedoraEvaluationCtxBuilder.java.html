@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>FedoraEvaluationCtxBuilder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fedora Repository XACML Authorization Module</a> &gt; <a href="index.source.html" class="el_package">org.fcrepo.auth.xacml</a> &gt; <span class="el_source">FedoraEvaluationCtxBuilder.java</span></div><h1>FedoraEvaluationCtxBuilder.java</h1><pre class="source lang-java linenums">/*
+ * Licensed to DuraSpace under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * DuraSpace licenses this file to you under the Apache License,
+ * Version 2.0 (the &quot;License&quot;); you may not use this file except in
+ * compliance with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_ACTION_ID;
+import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_ENVIRONMENT_ORIGINAL_IP_ADDRESS;
+import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_ID;
+import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_WORKSPACE;
+import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_SUBJECT_ID;
+import static org.fcrepo.auth.xacml.URIConstants.FCREPO_SUBJECT_GROUP;
+import static org.fcrepo.auth.xacml.URIConstants.FCREPO_SUBJECT_ROLE;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import org.jboss.security.xacml.sunxacml.BasicEvaluationCtx;
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.ParsingException;
+import org.jboss.security.xacml.sunxacml.attr.StringAttribute;
+import org.jboss.security.xacml.sunxacml.ctx.Attribute;
+import org.jboss.security.xacml.sunxacml.ctx.RequestCtx;
+import org.jboss.security.xacml.sunxacml.ctx.Subject;
+import org.jboss.security.xacml.sunxacml.finder.AttributeFinder;
+import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+/**
+ * @author Gregory Jansen
+ *
+ */
+<span class="fc" id="L52">public class FedoraEvaluationCtxBuilder {</span>
+
+    /**
+     * Class-level logger.
+     */
+<span class="fc" id="L57">    private static final Logger LOGGER = LoggerFactory.getLogger(FedoraEvaluationCtxBuilder.class);</span>
+
+    /**
+     * The list of other subjects.
+     */
+<span class="fc" id="L62">    private final List&lt;Subject&gt; subjectList = new ArrayList&lt;&gt;();</span>
+
+    /**
+     * This list of resource attributes.
+     */
+<span class="fc" id="L67">    private final List&lt;Attribute&gt; resourceList = new ArrayList&lt;&gt;();</span>
+
+    /**
+     * This list of action attributes.
+     */
+<span class="fc" id="L72">    private final List&lt;Attribute&gt; actionList = new ArrayList&lt;&gt;();</span>
+
+    /**
+     * This list of environment attributes.
+     */
+<span class="fc" id="L77">    private final List&lt;Attribute&gt; environmentList = new ArrayList&lt;&gt;();</span>
+
+    /**
+     * The list of attribute finder modules.
+     */
+<span class="fc" id="L82">    private final List&lt;AttributeFinderModule&gt; attributeFinderModules = new ArrayList&lt;&gt;();</span>
+
+    /**
+     * Build the evaluation context.
+     *
+     * @return the evaluation context
+     */
+    public final EvaluationCtx build() {
+<span class="fc" id="L90">        final RequestCtx rc = new RequestCtx(subjectList, resourceList, actionList, environmentList);</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (LOGGER.isDebugEnabled()) {</span>
+<span class="nc" id="L92">            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {</span>
+<span class="nc" id="L93">                rc.encode(baos);</span>
+<span class="nc" id="L94">                LOGGER.debug(&quot;RequestCtx dump:\n{}&quot;, baos.toString(&quot;utf-8&quot;));</span>
+<span class="nc bnc" id="L95" title="All 8 branches missed.">            } catch (final IOException e) {</span>
+<span class="nc" id="L96">                LOGGER.info(&quot;Cannot print request context&quot;, e);</span>
+<span class="nc" id="L97">            }</span>
+        }
+
+<span class="fc" id="L100">        final AttributeFinder af = new AttributeFinder();</span>
+<span class="fc" id="L101">        af.setModules(attributeFinderModules);</span>
+        try {
+<span class="fc" id="L103">            final BasicEvaluationCtx result = new BasicEvaluationCtx(rc, af);</span>
+            // result.setResourceId(resourceId);
+<span class="fc" id="L105">            return result;</span>
+<span class="nc" id="L106">        } catch (final ParsingException e) {</span>
+<span class="nc" id="L107">            throw new Error(e);</span>
+        }
+    }
+
+    /**
+     * Add a finder module to context.
+     *
+     * @param module module to add
+     * @return the builder
+     */
+    public final FedoraEvaluationCtxBuilder addFinderModule(final AttributeFinderModule module) {
+<span class="fc" id="L118">        this.attributeFinderModules.add(module);</span>
+<span class="fc" id="L119">        return this;</span>
+    }
+
+    /**
+     * Adds a basic Fedora subject to the context.
+     *
+     * @param username the user principal name, or null
+     * @param roles the effective roles for user, or null
+     * @return the builder
+     */
+    public final FedoraEvaluationCtxBuilder addSubject(final String username, final Set&lt;String&gt; roles) {
+<span class="fc" id="L130">        final List&lt;Attribute&gt; subjectAttrs = new ArrayList&lt;&gt;();</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">        if (username != null) {</span>
+<span class="fc" id="L132">            final StringAttribute v = new StringAttribute(username);</span>
+<span class="fc" id="L133">            final Attribute sid = new Attribute(ATTRIBUTEID_SUBJECT_ID, null, null, v);</span>
+<span class="fc" id="L134">            subjectAttrs.add(sid);</span>
+        }
+
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">        if (roles != null) {</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">            for (final String role : roles) {</span>
+<span class="fc" id="L139">                final StringAttribute roleAttr = new StringAttribute(role);</span>
+<span class="fc" id="L140">                final Attribute roleId = new Attribute(FCREPO_SUBJECT_ROLE, null, null, roleAttr);</span>
+<span class="fc" id="L141">                subjectAttrs.add(roleId);</span>
+<span class="fc" id="L142">            }</span>
+        }
+
+<span class="fc" id="L145">        this.subjectList.add(new Subject(subjectAttrs));</span>
+<span class="fc" id="L146">        return this;</span>
+    }
+
+    /**
+     * Add the node or property path as resource ID.
+     *
+     * @param rawModeShapePath the path to the node or property
+     * @return the builder
+     */
+    public final FedoraEvaluationCtxBuilder addResourceID(final String rawModeShapePath) {
+<span class="fc" id="L156">        final Attribute rid = new Attribute(ATTRIBUTEID_RESOURCE_ID, null, null, new StringAttribute(rawModeShapePath));</span>
+<span class="fc" id="L157">        resourceList.add(rid);</span>
+<span class="fc" id="L158">        return this;</span>
+    }
+
+    /**
+     * Add the workspace name.
+     *
+     * @param name name of workspace
+     * @return the builder
+     */
+    public final FedoraEvaluationCtxBuilder addWorkspace(final String name) {
+<span class="fc" id="L168">        final Attribute wid = new Attribute(ATTRIBUTEID_RESOURCE_WORKSPACE, null, null, new StringAttribute(name));</span>
+<span class="fc" id="L169">        resourceList.add(wid);</span>
+<span class="fc" id="L170">        return this;</span>
+    }
+
+    /**
+     * Adds actions as action ID and modify resource scope to handle remove.
+     *
+     * @param actions the requested actions
+     * @return the builder
+     */
+    public final FedoraEvaluationCtxBuilder addActions(final String[] actions) {
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">        if (actions != null) {</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">            for (final String action : actions) {</span>
+<span class="fc" id="L182">                final Attribute a = new Attribute(ATTRIBUTEID_ACTION_ID, null, null, new StringAttribute(action));</span>
+<span class="fc" id="L183">                actionList.add(a);</span>
+                // if (&quot;remove&quot;.equals(action)) {
+                // final Attribute scope =
+                // new Attribute(ATTRIBUTEID_RESOURCE_SCOPE, null, null,
+                // new StringAttribute(&quot;Descendants&quot;));
+                // resourceList.add(scope);
+                // }
+            }
+        }
+<span class="fc" id="L192">        return this;</span>
+    }
+
+    /**
+     * @param remoteAddr the remote address
+     */
+    public void addOriginalRequestIP(final String remoteAddr) {
+<span class="fc" id="L199">        final Attribute a = new Attribute(ATTRIBUTEID_ENVIRONMENT_ORIGINAL_IP_ADDRESS,</span>
+                                          null,
+                                          null,
+                                          new StringAttribute(remoteAddr));
+<span class="fc" id="L203">        actionList.add(a);</span>
+<span class="fc" id="L204">    }</span>
+
+    /**
+     * This method adds group attributes to the subject-set.
+     *
+     * @param user      for arg groups
+     * @param allGroups to be added to the subject-set
+     * @return this object
+     */
+    public FedoraEvaluationCtxBuilder addGroups(final Principal user, final Set&lt;Principal&gt; allGroups) {
+<span class="fc" id="L214">        LOGGER.trace(&quot;For user, {}, adding groups {}&quot;, user.getName(), allGroups);</span>
+
+<span class="pc bpc" id="L216" title="3 of 6 branches missed.">        if (null == user || null == allGroups || allGroups.isEmpty()) {</span>
+<span class="nc" id="L217">            LOGGER.trace(&quot;Not adding any groups!&quot;);</span>
+<span class="nc" id="L218">            return this;</span>
+        }
+
+<span class="fc" id="L221">        final List&lt;Attribute&gt; subjectAttrs = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">        for (final Principal group : allGroups) {</span>
+            // Do not include the user principal in the group attributes.
+<span class="fc bfc" id="L224" title="All 2 branches covered.">            if (!group.equals(user)) {</span>
+<span class="fc" id="L225">                final StringAttribute groupAttr = new StringAttribute(group.getName());</span>
+<span class="fc" id="L226">                final Attribute groupId = new Attribute(FCREPO_SUBJECT_GROUP, null, null, groupAttr);</span>
+<span class="fc" id="L227">                subjectAttrs.add(groupId);</span>
+            }
+<span class="fc" id="L229">        }</span>
+<span class="fc" id="L230">        this.subjectList.add(new Subject(subjectAttrs));</span>
+<span class="fc" id="L231">        return this;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>XACMLWorkspaceInitializer.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fedora Repository XACML Authorization Module</a> &gt; <a href="index.source.html" class="el_package">org.fcrepo.auth.xacml</a> &gt; <span class="el_source">XACMLWorkspaceInitializer.java</span></div><h1>XACMLWorkspaceInitializer.java</h1><pre class="source lang-java linenums">/*
+ * Licensed to DuraSpace under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * DuraSpace licenses this file to you under the Apache License,
+ * Version 2.0 (the &quot;License&quot;); you may not use this file except in
+ * compliance with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
+
+import javax.inject.Inject;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
+import javax.jcr.nodetype.NodeType;
+import javax.jcr.nodetype.NodeTypeIterator;
+import javax.jcr.nodetype.NodeTypeTemplate;
+
+import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.api.exception.InvalidChecksumException;
+import org.fcrepo.kernel.api.models.FedoraBinary;
+import org.fcrepo.kernel.api.services.BinaryService;
+
+import org.apache.commons.io.FileUtils;
+import org.modeshape.jcr.api.nodetype.NodeTypeManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableList;
+
+/**
+ * Sets up node types and default policies for the XACML Authorization Delegate.
+ *
+ * @author Gregory Jansen
+ */
+public class XACMLWorkspaceInitializer {
+
+    /**
+     * Class-level logger.
+     */
+<span class="fc" id="L55">    private static final Logger LOGGER = LoggerFactory.getLogger(XACMLWorkspaceInitializer.class);</span>
+
+    /**
+     * Fedora's ModeShape session factory.
+     */
+    @Inject
+    private SessionFactory sessionFactory;
+
+    @Inject
+    private BinaryService binaryService;
+
+    private final File initialPoliciesDirectory;
+
+    private final File initialRootPolicyFile;
+
+    /**
+     * Constructor
+     *
+     * @param initialPoliciesDirectory of default policies
+     * @param initialRootPolicyFile    defining root policy
+     */
+<span class="fc" id="L76">    public XACMLWorkspaceInitializer(final File initialPoliciesDirectory, final File initialRootPolicyFile) {</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (null == initialPoliciesDirectory) {</span>
+<span class="nc" id="L78">            throw new IllegalArgumentException(&quot;InitialPolicyDirectory is null!&quot;);</span>
+        }
+<span class="pc bpc" id="L80" title="2 of 4 branches missed.">        if (null == initialPoliciesDirectory.list() || 0 == initialPoliciesDirectory.list().length) {</span>
+<span class="nc" id="L81">            throw new IllegalArgumentException(&quot;InitialPolicyDirectory does not exist or is empty! &quot; +</span>
+<span class="nc" id="L82">                                                       initialPoliciesDirectory.getAbsolutePath());</span>
+        }
+<span class="pc bpc" id="L84" title="2 of 4 branches missed.">        if (null == initialRootPolicyFile || !initialRootPolicyFile.exists()) {</span>
+<span class="nc" id="L85">            throw new IllegalArgumentException(&quot;InitialRootPolicyFile is null or does not exist!&quot;);</span>
+        }
+
+<span class="fc" id="L88">        this.initialPoliciesDirectory = initialPoliciesDirectory;</span>
+<span class="fc" id="L89">        this.initialRootPolicyFile = initialRootPolicyFile;</span>
+<span class="fc" id="L90">    }</span>
+
+    /**
+     * Initializes default policies.
+     */
+    public void init() {
+<span class="nc" id="L96">        doInit(false);</span>
+<span class="nc" id="L97">    }</span>
+
+    /**
+     * Initializes node types and default policies - for Integration Tests!
+     */
+    public void initTest() {
+<span class="fc" id="L103">        doInit(true);</span>
+<span class="fc" id="L104">    }</span>
+
+    private void doInit(final boolean test) {
+        // Do not &quot;registerNodeTypes&quot; because the xacml-policy.cnd introduces a cyclical dependency with the main
+        //  fedora-node-types.cnd that causes an exception on repository restart.
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">        if (test) {</span>
+<span class="fc" id="L110">            registerNodeTypes();</span>
+        }
+<span class="fc" id="L112">        loadInitialPolicies();</span>
+<span class="fc" id="L113">        linkRootToPolicy();</span>
+<span class="fc" id="L114">    }</span>
+
+    private void registerNodeTypes() {
+<span class="fc" id="L117">        Session session = null;</span>
+        try {
+<span class="fc" id="L119">            session = sessionFactory.getInternalSession();</span>
+<span class="fc" id="L120">            final NodeTypeManager mgr = (NodeTypeManager) session.getWorkspace().getNodeTypeManager();</span>
+<span class="fc" id="L121">            final URL cnd = XACMLWorkspaceInitializer.class.getResource(&quot;/cnd/xacml-policy.cnd&quot;);</span>
+<span class="fc" id="L122">            final NodeTypeIterator nti = mgr.registerNodeTypes(cnd, true);</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">            while (nti.hasNext()) {</span>
+<span class="fc" id="L124">                final NodeType nt = nti.nextNodeType();</span>
+<span class="fc" id="L125">                LOGGER.debug(&quot;registered node type: {}&quot;, nt.getName());</span>
+<span class="fc" id="L126">            }</span>
+
+            // Add &quot;authz:xacmlAssignable&quot; mixin to &quot;fedora:Resource&quot; type
+<span class="fc" id="L129">            final NodeType nodeType = mgr.getNodeType(&quot;fedora:Resource&quot;);</span>
+<span class="fc" id="L130">            final NodeTypeTemplate nodeTypeTemplate = mgr.createNodeTypeTemplate(nodeType);</span>
+<span class="fc" id="L131">            final String[] superTypes = nodeType.getDeclaredSupertypeNames();</span>
+<span class="fc" id="L132">            final ImmutableList.Builder&lt;String&gt; listBuilder = ImmutableList.builder();</span>
+<span class="fc" id="L133">            listBuilder.add(superTypes);</span>
+<span class="fc" id="L134">            listBuilder.add(&quot;authz:xacmlAssignable&quot;);</span>
+<span class="fc" id="L135">            final ImmutableList&lt;String&gt; newSuperTypes = listBuilder.build();</span>
+<span class="fc" id="L136">            nodeTypeTemplate.setDeclaredSuperTypeNames(newSuperTypes.toArray(new String[newSuperTypes.size()]));</span>
+
+<span class="fc" id="L138">            mgr.registerNodeType(nodeTypeTemplate, true);</span>
+
+<span class="fc" id="L140">            session.save();</span>
+<span class="fc" id="L141">            LOGGER.debug(&quot;Registered XACML policy node types&quot;);</span>
+<span class="nc" id="L142">        } catch (final RepositoryException | IOException e) {</span>
+<span class="nc" id="L143">            throw new Error(&quot;Cannot register XACML policy node types&quot;, e);</span>
+        } finally {
+<span class="pc bpc" id="L145" title="3 of 4 branches missed.">            if (session != null) {</span>
+<span class="pc" id="L146">                session.logout();</span>
+            }
+        }
+<span class="fc" id="L149">    }</span>
+
+    /**
+     * Create nodes for the default XACML policy set. Policies are created at paths according to their IDs.
+     */
+    private void loadInitialPolicies() {
+<span class="fc" id="L155">        Session session = null;</span>
+        try {
+<span class="fc" id="L157">            session = sessionFactory.getInternalSession();</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">            for (final File p : initialPoliciesDirectory.listFiles()) {</span>
+<span class="fc" id="L159">                final String id = PolicyUtil.getID(FileUtils.openInputStream(p));</span>
+<span class="fc" id="L160">                final String repoPath = PolicyUtil.getPathForId(id);</span>
+<span class="fc" id="L161">                final FedoraBinary binary = binaryService.findOrCreate(session, repoPath);</span>
+<span class="pc" id="L162">                try (FileInputStream stream = new FileInputStream(p)) {</span>
+<span class="fc" id="L163">                    binary.setContent(stream, &quot;application/xml&quot;, null, p.getName(), null);</span>
+<span class="pc bpc" id="L164" title="6 of 8 branches missed.">                }</span>
+<span class="fc" id="L165">                LOGGER.info(&quot;Add initial policy {} at {}&quot;, p.getAbsolutePath(), binary.getPath());</span>
+            }
+<span class="fc" id="L167">            session.save();</span>
+<span class="nc" id="L168">        } catch (final RepositoryException | InvalidChecksumException | IOException e) {</span>
+<span class="nc" id="L169">            throw new Error(&quot;Cannot create default root policies&quot;, e);</span>
+        } finally {
+<span class="pc bpc" id="L171" title="3 of 4 branches missed.">            if (session != null) {</span>
+<span class="pc" id="L172">                session.logout();</span>
+            }
+        }
+<span class="fc" id="L175">    }</span>
+
+    /**
+     * Set the policy that is effective at the root node.
+     */
+    private void linkRootToPolicy() {
+<span class="fc" id="L181">        Session session = null;</span>
+        try {
+<span class="fc" id="L183">            session = sessionFactory.getInternalSession();</span>
+<span class="fc" id="L184">            session.getRootNode().addMixin(&quot;authz:xacmlAssignable&quot;);</span>
+<span class="fc" id="L185">            final String id = PolicyUtil.getID(FileUtils.openInputStream(initialRootPolicyFile));</span>
+<span class="fc" id="L186">            final String repoPath = PolicyUtil.getPathForId(id);</span>
+<span class="fc" id="L187">            final Node globalPolicy = session.getNode(repoPath);</span>
+<span class="fc" id="L188">            session.getRootNode().setProperty(&quot;authz:policy&quot;, globalPolicy);</span>
+<span class="fc" id="L189">            session.save();</span>
+<span class="nc" id="L190">        } catch (final RepositoryException | IOException e) {</span>
+<span class="nc" id="L191">            throw new Error(&quot;Cannot configure root mix-in or policy&quot;, e);</span>
+        } finally {
+<span class="pc bpc" id="L193" title="3 of 4 branches missed.">            if (session != null) {</span>
+<span class="pc" id="L194">                session.logout();</span>
+            }
+        }
+<span class="fc" id="L197">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

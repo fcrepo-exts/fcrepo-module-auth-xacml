@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>XACMLAuthorizationDelegate.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fedora Repository XACML Authorization Module</a> &gt; <a href="index.source.html" class="el_package">org.fcrepo.auth.xacml</a> &gt; <span class="el_source">XACMLAuthorizationDelegate.java</span></div><h1>XACMLAuthorizationDelegate.java</h1><pre class="source lang-java linenums">/*
+ * Licensed to DuraSpace under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * DuraSpace licenses this file to you under the Apache License,
+ * Version 2.0 (the &quot;License&quot;); you may not use this file except in
+ * compliance with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.jcr.Session;
+import javax.servlet.http.HttpServletRequest;
+
+import org.fcrepo.auth.roles.common.AbstractRolesAuthorizationDelegate;
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.PDP;
+import org.jboss.security.xacml.sunxacml.ctx.ResponseCtx;
+import org.jboss.security.xacml.sunxacml.ctx.Result;
+import org.jboss.security.xacml.sunxacml.finder.impl.CurrentEnvModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+/**
+ * Responsible for resolving Fedora's permissions within ModeShape via a XACML
+ * Policy Decision Point (PDP).
+ *
+ * @author Gregory Jansen
+ */
+@Component(&quot;fad&quot;)
+<span class="fc" id="L47">public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelegate {</span>
+
+    public static final String EVERYONE_NAME = &quot;EVERYONE&quot;;
+
+    /**
+     * The security principal for every request, that represents the &quot;EVERYONE&quot; user.
+     */
+<span class="fc" id="L54">    private static final Principal EVERYONE = new Principal() {</span>
+
+        // Currently, this is identical to the EVERYONE principal defined in the RBACL module. This is done to
+        // preserve compatibility with earlier versions, where the definition of EVERYONE was part of the
+        // ServletContainerAuthenticationProvider and shared with all of the authorization modules. Currently, the
+        // XACML module does not appear to actually use this principal, and it may be worth reviewing in future for
+        // removal, or for changing it to a more XACML-specific concept of &quot;everyone&quot;.
+
+        @Override
+        public String getName() {
+<span class="fc" id="L64">            return XACMLAuthorizationDelegate.EVERYONE_NAME;</span>
+        }
+
+        @Override
+        public String toString() {
+<span class="nc" id="L69">            return getName();</span>
+        }
+
+    };
+
+    /**
+     * Class-level logger.
+     */
+<span class="fc" id="L77">    private static final Logger LOGGER = LoggerFactory.getLogger(XACMLAuthorizationDelegate.class);</span>
+
+    @Inject
+    private PDPFactory pdpFactory;
+
+    /**
+     * The XACML PDP.
+     */
+<span class="fc" id="L85">    private PDP pdp = null;</span>
+
+    /**
+     * The standard environment attribute finder, supplies date/time.
+     */
+<span class="fc" id="L90">    private final CurrentEnvModule currentEnvironmentAttributeModule = new CurrentEnvModule();</span>
+
+    /**
+     * The triple-based resource attribute finder module.
+     */
+    @Inject
+    private TripleAttributeFinderModule tripleResourceAttributeFinderModule;
+
+    /**
+     * The SPARQL-based resource attribute finder module.
+     */
+    @Inject
+    private SparqlResourceAttributeFinderModule sparqlResourceAttributeFinderModule;
+
+    /**
+     * Configures the delegate.
+     */
+    @PostConstruct
+    public final void init() {
+<span class="fc" id="L109">        pdp = pdpFactory.makePDP();</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (pdp == null) {</span>
+<span class="nc" id="L111">            throw new Error(&quot;There is no PDP wired by the factory in the Spring context.&quot;);</span>
+        }
+<span class="fc" id="L113">    }</span>
+
+    /*
+     * (non-Javadoc)
+     * @see
+     * org.fcrepo.auth.common.FedoraAuthorizationDelegate#hasPermission(javax
+     * .jcr.Session, org.modeshape.jcr.value.Path, java.lang.String[])
+     */
+    @Override
+    public boolean rolesHavePermission(final Session session,
+                                       final String absPath,
+                                       final String[] actions,
+                                       final Set&lt;String&gt; roles) {
+<span class="fc" id="L126">        final EvaluationCtx evaluationCtx = buildEvaluationContext(session, absPath, actions, roles);</span>
+<span class="fc" id="L127">        final ResponseCtx resp = pdp.evaluate(evaluationCtx);</span>
+
+<span class="fc" id="L129">        boolean permit = true;</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        for (final Object o : resp.getResults()) {</span>
+<span class="fc" id="L131">            final Result res = (Result) o;</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">            if (LOGGER.isDebugEnabled()) {</span>
+<span class="nc" id="L133">                try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {</span>
+<span class="nc" id="L134">                    res.encode(baos);</span>
+<span class="nc" id="L135">                    LOGGER.debug(&quot;ResponseCtx dump:\n{}&quot;, baos.toString(&quot;utf-8&quot;));</span>
+<span class="nc bnc" id="L136" title="All 8 branches missed.">                } catch (final IOException e) {</span>
+<span class="nc" id="L137">                    LOGGER.info(&quot;Cannot print response context&quot;, e);</span>
+<span class="nc" id="L138">                }</span>
+            }
+<span class="fc bfc" id="L140" title="All 2 branches covered.">            if (Result.DECISION_PERMIT != res.getDecision()) {</span>
+<span class="fc" id="L141">                permit = false;</span>
+<span class="fc" id="L142">                break;</span>
+            }
+<span class="fc" id="L144">        }</span>
+
+<span class="fc" id="L146">        LOGGER.debug(&quot;Request for actions: {}, on path: {}, with roles: {}. Permission={}&quot;,</span>
+                     actions,
+                     absPath,
+                     roles,
+<span class="fc" id="L150">                     permit);</span>
+<span class="fc" id="L151">        return permit;</span>
+    }
+
+    /**
+     * Builds a global attribute finder from injected modules that may use
+     * current session information.
+     *
+     * @param session the ModeShape session
+     * @param absPath the node or property path
+     * @param actions the actions requested
+     * @return an attribute finder
+     */
+    private EvaluationCtx buildEvaluationContext(final Session session,
+                                                 final String absPath,
+                                                 final String[] actions,
+                                                 final Set&lt;String&gt; roles) {
+<span class="fc" id="L167">        final FedoraEvaluationCtxBuilder builder = new FedoraEvaluationCtxBuilder();</span>
+<span class="fc" id="L168">        builder.addFinderModule(currentEnvironmentAttributeModule);</span>
+<span class="fc" id="L169">        builder.addFinderModule(sparqlResourceAttributeFinderModule);</span>
+
+        // A subject attribute finder prototype is injected with Session
+        // AttributeFinderModule subjectAttributeFinder = null;
+        // if (applicationContext
+        // .containsBeanDefinition(SUBJECT_ATTRIBUTE_FINDER_BEAN)) {
+        // subjectAttributeFinder =
+        // (AttributeFinderModule) applicationContext.getBean(
+        // SUBJECT_ATTRIBUTE_FINDER_BEAN, session);
+        // builder.addFinderModule(subjectAttributeFinder);
+        // }
+
+        // environment attribute finder is injected with Session
+        // AttributeFinderModule environmentAttributeFinder = null;
+        // if (applicationContext
+        // .containsBeanDefinition(ENVIRONMENT_ATTRIBUTE_FINDER_BEAN)) {
+        // environmentAttributeFinder =
+        // (AttributeFinderModule) applicationContext.getBean(
+        // ENVIRONMENT_ATTRIBUTE_FINDER_BEAN, session);
+        // builder.addFinderModule(environmentAttributeFinder);
+        // }
+
+        // Triple attribute finder will look in modeshape for any valid
+        // predicate URI, therefore it falls last in this list.
+<span class="fc" id="L193">        builder.addFinderModule(tripleResourceAttributeFinderModule);</span>
+<span class="fc" id="L194">        LOGGER.debug(&quot;effective roles: {}&quot;, roles);</span>
+
+<span class="fc" id="L196">        final Principal user = (Principal) session.getAttribute(FEDORA_USER_PRINCIPAL);</span>
+<span class="fc" id="L197">        builder.addSubject(user.getName(), roles);</span>
+<span class="fc" id="L198">        builder.addResourceID(absPath);</span>
+<span class="fc" id="L199">        builder.addWorkspace(session.getWorkspace().getName());</span>
+<span class="fc" id="L200">        builder.addActions(actions);</span>
+
+        // add the original IP address
+<span class="fc" id="L203">        final HttpServletRequest request = (HttpServletRequest) session.getAttribute(FEDORA_SERVLET_REQUEST);</span>
+<span class="fc" id="L204">        builder.addOriginalRequestIP(request.getRemoteAddr());</span>
+
+        // add user's groups
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L208">        final Set&lt;Principal&gt; allGroups = (Set&lt;Principal&gt;) session.getAttribute(FEDORA_ALL_PRINCIPALS);</span>
+<span class="fc" id="L209">        LOGGER.debug(&quot;effective groups: {}&quot;, allGroups);</span>
+<span class="fc" id="L210">        builder.addGroups(user, allGroups);</span>
+
+<span class="fc" id="L212">        return builder.build();</span>
+    }
+
+    /**
+     * Get the principal that represents the &quot;EVERYONE&quot; user.
+     */
+    @Override
+    public Principal getEveryonePrincipal() {
+<span class="fc" id="L220">        return EVERYONE;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
