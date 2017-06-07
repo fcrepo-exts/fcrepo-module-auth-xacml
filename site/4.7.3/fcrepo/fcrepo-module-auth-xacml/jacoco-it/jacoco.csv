@@ -1,0 +1,12 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,FedoraEvaluationCtxBuilder,69,284,15,15,10,53,11,14,0,10
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,URIConstants,3,28,0,0,1,15,1,1,1,1
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,PDPFactory,0,44,0,0,0,10,0,3,0,3
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,XACMLWorkspaceInitializer,99,237,21,15,12,63,17,9,1,7
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,TripleAttributeFinderModule,109,205,5,15,22,47,5,10,0,5
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,XACMLAuthorizationDelegate,63,166,10,6,7,38,6,8,0,6
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,SparqlResourceAttributeFinderModule,11,24,0,0,2,8,2,6,2,6
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,PolicyUtil,37,123,7,11,12,37,8,8,1,6
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,FedoraPolicyFinderModule,87,199,11,13,21,51,11,10,0,9
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,FedoraResourceFinderModule,82,7,8,0,19,3,8,3,4,3
+Fedora Repository XACML Authorization Module,org.fcrepo.auth.xacml,XACMLAuthorizationDelegate.new Principal() {...},3,5,0,0,1,2,1,2,1,2
