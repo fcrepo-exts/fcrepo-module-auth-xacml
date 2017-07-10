@@ -44,6 +44,7 @@ import org.springframework.stereotype.Component;
  * @author Gregory Jansen
  */
 @Component("fad")
+@Deprecated
 public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelegate {
 
     public static final String EVERYONE_NAME = "EVERYONE";
@@ -123,6 +124,11 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
                                        final String absPath,
                                        final String[] actions,
                                        final Set<String> roles) {
+        LOGGER.warn("===========================");
+        LOGGER.warn("This authorization provider is deprecated and will be removed in a future release of Fedora: {}",
+                this.getClass());
+        LOGGER.warn("===========================");
+
         final EvaluationCtx evaluationCtx = buildEvaluationContext(session, absPath, actions, roles);
         final ResponseCtx resp = pdp.evaluate(evaluationCtx);
 
