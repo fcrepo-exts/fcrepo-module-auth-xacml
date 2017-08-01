@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.fcrepo</groupId>
     <artifactId>fcrepo</artifactId>
-    <version>4.7.4</version>
+    <version>4.7.5-SNAPSHOT</version>
   </parent>
   <artifactId>fcrepo-module-auth-xacml</artifactId>
   <name>Fedora Repository XACML Authorization Module</name>
@@ -71,7 +71,7 @@
     <developerConnection>scm:git:git@github.com:fcrepo4-exts/${project.artifactId}.git
     </developerConnection>
     <url>https://github.com/fcrepo4-exts/fcrepo-module-auth-xacml</url>
-    <tag>fcrepo-module-auth-xacml-4.7.4</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <dependencyManagement>
@@ -138,32 +138,32 @@
     <dependency>
       <groupId>org.fcrepo</groupId>
       <artifactId>fcrepo-configs</artifactId>
-      <version>4.7.4</version>
+      <version>4.7.5-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.fcrepo</groupId>
       <artifactId>fcrepo-kernel-modeshape</artifactId>
-      <version>4.7.4</version>
+      <version>4.7.5-SNAPSHOT</version>
       <scope>test</scope>
       <classifier>tests</classifier>
     </dependency>
     <dependency>
       <groupId>org.fcrepo</groupId>
       <artifactId>fcrepo-http-api</artifactId>
-      <version>4.7.4</version>
+      <version>4.7.5-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.fcrepo</groupId>
       <artifactId>fcrepo-auth-common</artifactId>
-      <version>4.7.4</version>
+      <version>4.7.5-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.fcrepo</groupId>
       <artifactId>fcrepo-auth-roles-common</artifactId>
-      <version>4.7.4</version>
+      <version>4.7.5-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.jboss.security</groupId>
@@ -173,7 +173,7 @@
     <dependency>
       <groupId>org.fcrepo</groupId>
       <artifactId>fcrepo-http-commons</artifactId>
-      <version>4.7.4</version>
+      <version>4.7.5-SNAPSHOT</version>
       <scope>test</scope>
       <type>test-jar</type>
     </dependency>
@@ -181,14 +181,14 @@
     <dependency>
       <groupId>org.fcrepo</groupId>
       <artifactId>fcrepo-auth-roles-common</artifactId>
-      <version>4.7.4</version>
+      <version>4.7.5-SNAPSHOT</version>
       <scope>test</scope>
       <type>test-jar</type>
     </dependency>
     <dependency>
       <groupId>org.fcrepo</groupId>
       <artifactId>fcrepo-auth-roles-basic</artifactId>
-      <version>4.7.4</version>
+      <version>4.7.5-SNAPSHOT</version>
       <scope>test</scope>
       <type>test-jar</type>
     </dependency>
