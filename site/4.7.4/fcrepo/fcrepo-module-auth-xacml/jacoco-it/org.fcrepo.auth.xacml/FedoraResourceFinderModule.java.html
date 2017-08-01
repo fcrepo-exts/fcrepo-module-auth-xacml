@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>FedoraResourceFinderModule.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fedora Repository XACML Authorization Module</a> &gt; <a href="index.source.html" class="el_package">org.fcrepo.auth.xacml</a> &gt; <span class="el_source">FedoraResourceFinderModule.java</span></div><h1>FedoraResourceFinderModule.java</h1><pre class="source lang-java linenums">/*
+ * Licensed to DuraSpace under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * DuraSpace licenses this file to you under the Apache License,
+ * Version 2.0 (the &quot;License&quot;); you may not use this file except in
+ * compliance with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import static org.fcrepo.kernel.modeshape.FedoraSessionImpl.getJcrSession;
+import static org.fcrepo.kernel.modeshape.utils.FedoraTypesUtils.isInternalNode;
+import static org.modeshape.jcr.api.JcrConstants.JCR_CONTENT;
+import static org.jboss.security.xacml.sunxacml.ctx.Status.STATUS_PROCESSING_ERROR;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.inject.Inject;
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
+
+import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.api.FedoraSession;
+
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
+import org.jboss.security.xacml.sunxacml.finder.ResourceFinderModule;
+import org.jboss.security.xacml.sunxacml.finder.ResourceFinderResult;
+import org.springframework.stereotype.Component;
+
+
+/**
+ * Locates resources that are subordinate to a Fedora resource.
+ * @author Gregory Jansen
+ * @author Esme Cowles
+ */
+@Component(&quot;fedoraResourceFinderModule&quot;)
+<span class="fc" id="L50">public class FedoraResourceFinderModule extends ResourceFinderModule {</span>
+
+    /**
+     * Fedora's ModeShape session factory.
+     */
+    @Inject
+    protected SessionFactory sessionFactory;
+
+    /*
+     * Does find child resources.
+     * @see org.jboss.security.xacml.sunxacml.finder.ResourceFinderModule#
+     * isChildSupported()
+     */
+    @Override
+    public final boolean isChildSupported() {
+<span class="fc" id="L65">        return true;</span>
+    }
+
+    /*
+     * Does find descendant resources.
+     * @see org.jboss.security.xacml.sunxacml.finder.ResourceFinderModule#
+     * isDescendantSupported()
+     */
+    @Override
+    public final boolean isDescendantSupported() {
+<span class="fc" id="L75">        return true;</span>
+    }
+
+    /*
+     * Finds ModeShape child resources based on parent ID and evaluation
+     * context.
+     * @see org.jboss.security.xacml.sunxacml.finder.ResourceFinderModule#
+     * findChildResources(org.jboss.security.xacml.sunxacml.attr.AttributeValue,
+     * org.jboss.security.xacml.sunxacml.EvaluationCtx)
+     */
+    @Override
+    public final ResourceFinderResult findChildResources(
+            final AttributeValue parentResourceId,
+            final EvaluationCtx context) {
+<span class="nc" id="L89">        return findChildren( parentResourceId, false );</span>
+    }
+
+    /*
+     * Finds ModeShape descendant resources based on parent ID and evaluation
+     * context.
+     * @see org.jboss.security.xacml.sunxacml.finder.ResourceFinderModule#
+     * findDescendantResources
+     * (org.jboss.security.xacml.sunxacml.attr.AttributeValue,
+     * org.jboss.security.xacml.sunxacml.EvaluationCtx)
+     */
+    @Override
+    public final ResourceFinderResult findDescendantResources(
+            final AttributeValue parentResourceId,
+            final EvaluationCtx context) {
+<span class="nc" id="L104">        return findChildren( parentResourceId, true );</span>
+    }
+
+    /**
+     * Find the child resources (or all descendant resources) of a path.
+     * @param parent Repository path to find children of.
+     * @param recurse If true, find all descenant resources, not just direct children.
+    **/
+    private ResourceFinderResult findChildren( final AttributeValue parent, final boolean recurse ) {
+        try {
+<span class="nc" id="L114">            final FedoraSession session = sessionFactory.getInternalSession();</span>
+<span class="nc" id="L115">            final Node node = getJcrSession(session).getNode( parent.getValue().toString() );</span>
+<span class="nc" id="L116">            final Set&lt;String&gt; children = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L117">            findChildren( node, children, recurse );</span>
+<span class="nc" id="L118">            return new ResourceFinderResult( children );</span>
+<span class="nc" id="L119">        } catch ( final RepositoryException ex ) {</span>
+<span class="nc" id="L120">            final HashMap&lt;AttributeValue, String&gt; errors = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L121">            errors.put( parent, STATUS_PROCESSING_ERROR );</span>
+<span class="nc" id="L122">            return new ResourceFinderResult( errors );</span>
+        }
+    }
+
+    /**
+     * Find children of a node.
+     * @param node Repository node to find children of
+     * @param children Set to add child paths to
+     * @param If true, find all descendant paths, not just direct child paths
+    **/
+    private void findChildren( final Node node, final Set&lt;String&gt; children, final boolean recurse )
+        throws RepositoryException {
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        for ( final NodeIterator nodes = node.getNodes(); nodes.hasNext(); ) {</span>
+<span class="nc" id="L135">            final Node child = nodes.nextNode();</span>
+<span class="nc bnc" id="L136" title="All 4 branches missed.">            if ( !isInternalNode.test(child) &amp;&amp; !child.getName().equals(JCR_CONTENT) ) {</span>
+
+<span class="nc" id="L138">                children.add( child.getPath() );</span>
+
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                if ( recurse ) {</span>
+<span class="nc" id="L141">                    findChildren( child, children, recurse );</span>
+                }
+            }
+<span class="nc" id="L144">        }</span>
+<span class="nc" id="L145">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
